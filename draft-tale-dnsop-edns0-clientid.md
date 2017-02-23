@@ -40,14 +40,19 @@ author:
 normative:
   Address_Family_Numbers:
     author:
-      name: n.d.
+        name: IANA
     title: Address Family Numbers
     target: http://www.iana.org/assignments/address-family-numbers/
 
 informative:
   DPRIVE_Working_Group:
     author:
-      name: n.d.
+      -
+        name: Warren Kumari
+        ins: W. Kumari
+      -
+        name: Tim Wicinski
+        ins: T. Wicinski
     title: DPRIVE Working Group
     target: https://datatracker.ietf.org/wg/dprive/charter/
 
@@ -60,13 +65,13 @@ informative:
 
   Vantio_CacheServe:
     author:
-      name: n.d.
+      organization: Nominum, Inc.
     title: Vantio CacheServe
     target: http://www.nominum.com/product/caching-dns/
 
   Umbrella:
     author:
-      name: n.d.
+      organization: Cisco Systems, Inc.
     title: Umbrella
     target: https://docs.umbrella.com/developer/networkdevices-api/identifying-dns-traffic2
 

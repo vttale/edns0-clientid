@@ -322,7 +322,7 @@ Table of Contents
 10.1.  Normative References
 
    [Address_Family_Numbers]
-              n.d., ., "Address Family Numbers", n.d.,
+              IANA, ., "Address Family Numbers", n.d.,
               <http://www.iana.org/assignments/address-family-numbers/>.
 
    [RFC1700]  Reynolds, J. and J. Postel, "Assigned Numbers", RFC 1700,
@@ -368,7 +368,7 @@ Table of Contents
               <http://www.thekelleys.org.uk/dnsmasq/doc.html>.
 
    [DPRIVE_Working_Group]
-              n.d., ., "DPRIVE Working Group", n.d.,
+              Kumari, W. and T. Wicinski, "DPRIVE Working Group", n.d.,
               <https://datatracker.ietf.org/wg/dprive/charter/>.
 
    [I-D.hardie-privsec-metadata-insertion]
@@ -392,12 +392,12 @@ Table of Contents
               October 2013, <http://www.rfc-editor.org/info/rfc7042>.
 
    [Umbrella]
-              n.d., ., "Umbrella", n.d.,
+              Cisco Systems, Inc., "Umbrella", n.d.,
               <https://docs.umbrella.com/developer/networkdevices-api/
               identifying-dns-traffic2>.
 
    [Vantio_CacheServe]
-              n.d., ., "Vantio CacheServe", n.d.,
+              Nominum, Inc., "Vantio CacheServe", n.d.,
               <http://www.nominum.com/product/caching-dns/>.
 
 Authors' Addresses
