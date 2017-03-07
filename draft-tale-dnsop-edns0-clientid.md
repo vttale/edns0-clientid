@@ -238,8 +238,8 @@ the request to the upstream full-service resolver.
 Because the option contains personally identifiable information, it
 should be protected by either only being used within Autonomous
 Systems {{!RFC1930}} controlled by the same provider, by going over an
-opaque channel such as DNS over TLS {{!RFC7858}}, or by securely
-encodded and varying per request.  It MUST NOT be sent in clear-text
+opaque channel such as DNS over TLS {{!RFC7858}}, or by being securely
+encoded and varying per request.  It MUST NOT be sent in clear-text
 across the Internet.
 
 ## DNS Response
