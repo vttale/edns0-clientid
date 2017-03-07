@@ -74,13 +74,15 @@ This draft defines a DNS EDNS option to carry a client-specific
 identifier in DNS queries, with guidance for privacy protection of
 such information.
 
-\[ Ed note: Text inside square brackets ([]) is additional background
+--- note_Ed_note
+
+Text inside square brackets (\[\]) is additional background
 information, answers to frequently asked questions, general musings,
 etc.  They will be removed before publication.  This document is being
 collaborated on in Github at
 \<https://github.com/vttale/edns0-clientid\>.  The most recent
 version of the document, open issues, etc should all be available
-here.  The authors gratefully accept pull requests. \]
+here.  The authors gratefully accept pull requests.
 
 --- middle
 
@@ -189,18 +191,18 @@ as follows:
     N: |                      CLIENT-IDENTIFIER                    /
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
-OPTION-CODE
+OPTION-CODE:
 : 2 octets per {{!RFC6891}}.  For ECID the code is TBD by IANA.
 
 OPTION-LENGTH:
 : 2 octets per {{!RFC6891}}.  Contains the length of the payload
 following OPTION-LENGTH, in octets.
 
-ECID-DOMAIN
+ECID-DOMAIN:
 : A variable length domain name that defines the context in which
 the identifier should be interpreted, encoded in uncompressed wire format.
 
-CLIENT-IDENTIFIER
+CLIENT-IDENTIFIER:
 : A variable number of octets, depending on ECID-DOMAIN.  Its contents
 are opaque to this specification, only needing to be understood
 between a co-operating forwarder and full-service resolver.
@@ -209,7 +211,12 @@ The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
 repeated in a single ECID option, increasing OPTION-LENGTH
 correspondingly. However, the same ECID-DOMAIN may not appear more
 than once.
- 
+
+\[A domain name is used to identify the payload in order to provide
+protection against conflicts with other users of the option without
+the burden of Yet Another IANA Registry to manage Yet Another Two Byte
+Code. The downside is slightly longer message lengths. \]
+
 All fields are in network byte order ("big-endian", per {{!RFC1700}},
 Data Notation).
 
@@ -277,7 +284,7 @@ rcode REFUSED.
 
 The current use of option 26946 by Umbrella encodes 64 bits of device
 identification following the 7 octet string "OpenDNS".  To use the
-ECDI option they would instead use an ECDI-DOMAIN such as
+ECID option they would instead use an ECID-DOMAIN such as
 eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
 also add the IP address they currently send with option 20292 they
 would use something like ip4.umbrella.com or ip6.umbrella.com and the

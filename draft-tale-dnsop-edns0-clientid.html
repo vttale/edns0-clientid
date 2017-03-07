@@ -440,7 +440,10 @@
   <a href="#rfc.abstract">Abstract</a>
 </h1>
 <p>This draft defines a DNS EDNS option to carry a client-specific identifier in DNS queries, with guidance for privacy protection of such information.</p>
-<p>[ Ed note: Text inside square brackets ([]) is additional background information, answers to frequently asked questions, general musings, etc.  They will be removed before publication.  This document is being collaborated on in Github at &lt;https://github.com/vttale/edns0-clientid&gt;.  The most recent version of the document, open issues, etc should all be available here.  The authors gratefully accept pull requests. ]</p>
+<h1>
+  <a>Ed note</a>
+</h1>
+<p>Text inside square brackets ([]) is additional background information, answers to frequently asked questions, general musings, etc.  They will be removed before publication.  This document is being collaborated on in Github at &lt;https://github.com/vttale/edns0-clientid&gt;.  The most recent version of the document, open issues, etc should all be available here.  The authors gratefully accept pull requests.</p>
 <h1 id="rfc.status">
   <a href="#rfc.status">Status of This Memo</a>
 </h1>
@@ -525,17 +528,18 @@ N: |                      CLIENT-IDENTIFIER                    /
 <p/>
 
 <dl>
-  <dt>OPTION-CODE</dt>
+  <dt>OPTION-CODE:</dt>
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  For ECID the code is TBD by IANA.</dd>
   <dt>OPTION-LENGTH:</dt>
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  Contains the length of the payload following OPTION-LENGTH, in octets.</dd>
-  <dt>ECID-DOMAIN</dt>
+  <dt>ECID-DOMAIN:</dt>
   <dd style="margin-left: 8">A variable length domain name that defines the context in which the identifier should be interpreted, encoded in uncompressed wire format.</dd>
-  <dt>CLIENT-IDENTIFIER</dt>
+  <dt>CLIENT-IDENTIFIER:</dt>
   <dd style="margin-left: 8">A variable number of octets, depending on ECID-DOMAIN.  Its contents are opaque to this specification, only needing to be understood between a co-operating forwarder and full-service resolver.</dd>
 </dl>
 <p id="rfc.section.4.p.3">The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be repeated in a single ECID option, increasing OPTION-LENGTH correspondingly. However, the same ECID-DOMAIN may not appear more than once.</p>
-<p id="rfc.section.4.p.4">All fields are in network byte order ("big-endian", per <a href="#RFC1700">[RFC1700]</a>, Data Notation).</p>
+<p id="rfc.section.4.p.4">[A domain name is used to identify the payload in order to provide protection against conflicts with other users of the option without the burden of Yet Another IANA Registry to manage Yet Another Two Byte Code. The downside is slightly longer message lengths. ]</p>
+<p id="rfc.section.4.p.5">All fields are in network byte order ("big-endian", per <a href="#RFC1700">[RFC1700]</a>, Data Notation).</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#protocol-description" id="protocol-description">Protocol Description</a></h1>
 <h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#dns-query" id="dns-query">DNS Query</a></h1>
 <p id="rfc.section.5.1.p.1">Any client that originates a DNS query message MAY include the ECID option in the DNS Query message.  It is normally expected that the client itself would not do this, but rather that it will be added by the local forwarding resolver.</p>
@@ -549,7 +553,7 @@ N: |                      CLIENT-IDENTIFIER                    /
 <p id="rfc.section.5.2.p.5">If the request contains a malformed ECID option, such as CLIENT-IDENTIFIER not correctly matching the length of described by OPTION-LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS rcode FORMERR.</p>
 <p id="rfc.section.5.2.p.6">If the resolver by policy does not respond to requests that are lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS rcode REFUSED.</p>
 <h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#example" id="example">Example</a></h1>
-<p id="rfc.section.6.p.1">The current use of option 26946 by Umbrella encodes 64 bits of device identification following the 7 octet string "OpenDNS".  To use the ECDI option they would instead use an ECDI-DOMAIN such as eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to also add the IP address they currently send with option 20292 they would use something like ip4.umbrella.com or ip6.umbrella.com and the corresponding IPv4 or IPv6 address.</p>
+<p id="rfc.section.6.p.1">The current use of option 26946 by Umbrella encodes 64 bits of device identification following the 7 octet string "OpenDNS".  To use the ECID option they would instead use an ECID-DOMAIN such as eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to also add the IP address they currently send with option 20292 they would use something like ip4.umbrella.com or ip6.umbrella.com and the corresponding IPv4 or IPv6 address.</p>
 <h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#nat-considerations" id="nat-considerations">NAT Considerations</a></h1>
 <p id="rfc.section.7.p.1">Devices that perform Network Address Translation (NAT) need not give special consideration for ECID. NAT translates between a layer 3 private IP address assigned to a client device on the Local Area Network and a layer 3 public IP address for use within the Wide Area Network.</p>
 <p id="rfc.section.7.p.2">ECID information identifies a client device by a different means, e.g. its layer 2 address. A device's identifier is NOT impacted by NAT.  Therefore, DNS queries may be passed without modification of any ECID information.</p>

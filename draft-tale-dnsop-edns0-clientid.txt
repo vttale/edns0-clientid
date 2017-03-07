@@ -18,13 +18,15 @@ Abstract
    identifier in DNS queries, with guidance for privacy protection of
    such information.
 
-   [ Ed note: Text inside square brackets ([]) is additional background
+Ed note
+
+   Text inside square brackets ([]) is additional background
    information, answers to frequently asked questions, general musings,
    etc.  They will be removed before publication.  This document is
    being collaborated on in Github at <https://github.com/vttale/
    edns0-clientid>.  The most recent version of the document, open
    issues, etc should all be available here.  The authors gratefully
-   accept pull requests. ]
+   accept pull requests.
 
 Status of This Memo
 
@@ -48,8 +50,6 @@ Copyright Notice
    Copyright (c) 2017 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
-   This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents
 
 
 
@@ -58,6 +58,8 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 1]
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
@@ -77,13 +79,13 @@ Table of Contents
      5.2.  DNS Response  . . . . . . . . . . . . . . . . . . . . . .   5
    6.  Example . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
    7.  NAT Considerations  . . . . . . . . . . . . . . . . . . . . .   6
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
    9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
    10. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
    11. References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
      11.1.  Normative References . . . . . . . . . . . . . . . . . .   7
      11.2.  Informative References . . . . . . . . . . . . . . . . .   8
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Introduction
 
@@ -104,8 +106,6 @@ Table of Contents
    added by software on the client's local area network, for
    transmission to the upstream DNS provider.
 
-   A similar EDNS option is already being used on the public Internet in
-   two different implementations.  One is between the [dnsmasq] resolver
 
 
 
@@ -114,6 +114,8 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 2]
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
+   A similar EDNS option is already being used on the public Internet in
+   two different implementations.  One is between the [dnsmasq] resolver
    on the client side and Nominum's [Vantio_CacheServe] upstream.  It
    uses EDNS option code 65073 from the "Reserved for Local/Experimental
    Use" range to pass the client's Media Access Control (MAC) address.
@@ -161,14 +163,14 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    For a comprehensive treatment of DNS terms, please see [RFC7719].
    This document uses the following additional terms:
 
-   ECID  EDNS Client Identification.
-
 
 
 Licht & Lawrence         Expires August 5, 2017                 [Page 3]
 
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
+
+   ECID  EDNS Client Identification.
 
    Client  The user or device that originates a DNS lookup.
 
@@ -199,25 +201,23 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    N: |                      CLIENT-IDENTIFIER                    /
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
-   OPTION-CODE  2 octets per [RFC6891].  For ECID the code is TBD by
+   OPTION-CODE:  2 octets per [RFC6891].  For ECID the code is TBD by
       IANA.
 
    OPTION-LENGTH:  2 octets per [RFC6891].  Contains the length of the
       payload following OPTION-LENGTH, in octets.
 
-   ECID-DOMAIN  A variable length domain name that defines the context
+   ECID-DOMAIN:  A variable length domain name that defines the context
       in which the identifier should be interpreted, encoded in
       uncompressed wire format.
 
-   CLIENT-IDENTIFIER  A variable number of octets, depending on ECID-
+   CLIENT-IDENTIFIER:  A variable number of octets, depending on ECID-
       DOMAIN.  Its contents are opaque to this specification, only
       needing to be understood between a co-operating forwarder and
       full-service resolver.
 
    The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
    repeated in a single ECID option, increasing OPTION-LENGTH
-   correspondingly.  However, the same ECID-DOMAIN may not appear more
-   than once.
 
 
 
@@ -225,6 +225,14 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 4]
 
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
+
+   correspondingly.  However, the same ECID-DOMAIN may not appear more
+   than once.
+
+   [A domain name is used to identify the payload in order to provide
+   protection against conflicts with other users of the option without
+   the burden of Yet Another IANA Registry to manage Yet Another Two
+   Byte Code.  The downside is slightly longer message lengths. ]
 
    All fields are in network byte order ("big-endian", per [RFC1700],
    Data Notation).
@@ -265,6 +273,15 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    SHOULD include an ECID option which contains the ECID-DOMAIN and
    CLIENT-IDENTIFIER that were considered for filtering.
 
+
+
+
+
+Licht & Lawrence         Expires August 5, 2017                 [Page 5]
+
+Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+
+
    For example, if a filter is set such that only names in the
    example.com domain are possibly restricted to some devices, then a
    request for foo.example.com would have the ECID in the response even
@@ -274,14 +291,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    So that the caching forwarding resolver does not need to have any
    knowledge about what filters are in place, it is the full-service
    resolver's responsibility to adjust any TTLs in the response as might
-
-
-
-Licht & Lawrence         Expires August 5, 2017                 [Page 5]
-
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
-
-
    be dictated by the filter policy it has configured.  That is, if some
    name is filtered only between the hours of 09:00 and 17:00 and a
    request is received for that name at 16:59:59, the TTL on a positive
@@ -301,7 +310,7 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
    The current use of option 26946 by Umbrella encodes 64 bits of device
    identification following the 7 octet string "OpenDNS".  To use the
-   ECDI option they would instead use an ECDI-DOMAIN such as
+   ECID option they would instead use an ECID-DOMAIN such as
    eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
    also add the IP address they currently send with option 20292 they
    would use something like ip4.umbrella.com or ip6.umbrella.com and the
@@ -320,15 +329,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    NAT.  Therefore, DNS queries may be passed without modification of
    any ECID information.
 
-8.  Security Considerations
-
-   The identifier of the client that initiated the request will be
-   visible to all servers that are passed the ECID option, and the
-   various devices on the path between the local network and the full-
-   service resolver being used by the forwarding resolver.
-
-   DNS filtering products are easy circumvented and should not be
-   considered real security measures.  With commonly available tools it
 
 
 
@@ -338,6 +338,15 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 6]
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
+8.  Security Considerations
+
+   The identifier of the client that initiated the request will be
+   visible to all servers that are passed the ECID option, and the
+   various devices on the path between the local network and the full-
+   service resolver being used by the forwarding resolver.
+
+   DNS filtering products are easy circumvented and should not be
+   considered real security measures.  With commonly available tools it
    is trivial to discover the non-filtered DNS responses and use them in
    place of the filtered responses.
 
@@ -378,6 +387,13 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
               DOI 10.17487/RFC2119, March 1997,
               <http://www.rfc-editor.org/info/rfc2119>.
 
+
+
+Licht & Lawrence         Expires August 5, 2017                 [Page 7]
+
+Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+
+
    [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
               NCACHE)", RFC 2308, DOI 10.17487/RFC2308, March 1998,
               <http://www.rfc-editor.org/info/rfc2308>.
@@ -386,13 +402,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
               for DNS (EDNS(0))", STD 75, RFC 6891,
               DOI 10.17487/RFC6891, April 2013,
               <http://www.rfc-editor.org/info/rfc6891>.
-
-
-
-Licht & Lawrence         Expires August 5, 2017                 [Page 7]
-
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
-
 
    [RFC7719]  Hoffman, P., Sullivan, A., and K. Fujiwara, "DNS
               Terminology", RFC 7719, DOI 10.17487/RFC7719, December
@@ -431,6 +440,16 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
               Nominum, Inc., "Vantio CacheServe", n.d.,
               <http://www.nominum.com/product/caching-dns/>.
 
+
+
+
+
+
+Licht & Lawrence         Expires August 5, 2017                 [Page 8]
+
+Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+
+
 Authors' Addresses
 
    Robert Licht
@@ -442,14 +461,6 @@ Authors' Addresses
    Email: robert.licht@charter.com
 
 
-
-
-
-Licht & Lawrence         Expires August 5, 2017                 [Page 8]
-
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
-
-
    David C Lawrence (editor)
    Akamai Technologies
    150 Broadway
@@ -457,17 +468,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    USA
 
    Email: tale@akamai.com
-
-
-
-
-
-
-
-
-
-
-
 
 
 
