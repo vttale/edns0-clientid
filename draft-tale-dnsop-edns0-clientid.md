@@ -37,13 +37,6 @@ author:
     country: USA
     email: tale@akamai.com
 
-normative:
-  Address_Family_Numbers:
-    author:
-        name: IANA
-    title: Address Family Numbers
-    target: http://www.iana.org/assignments/address-family-numbers/
-
 informative:
   DPRIVE_Working_Group:
     author:
@@ -71,7 +64,7 @@ informative:
 
   Umbrella:
     author:
-      organization: Cisco Systems, Inc.
+      org: Cisco Systems, Inc.
     title: Umbrella
     target: https://docs.umbrella.com/developer/networkdevices-api/identifying-dns-traffic2
 
@@ -80,6 +73,14 @@ informative:
 This draft defines a DNS EDNS option to carry a client-specific
 identifier in DNS queries, with guidance for privacy protection of
 such information.
+
+\[ Ed note: Text inside square brackets ([]) is additional background
+information, answers to frequently asked questions, general musings,
+etc.  They will be removed before publication.  This document is being
+collaborated on in Github at
+\<https://github.com/vttale/edns0-clientid\>.  The most recent
+version of the document, open issues, etc should all be available
+here.  The authors gratefully accept pull requests. \]
 
 --- middle
 
@@ -106,14 +107,15 @@ A similar EDNS option is already being used on the public Internet in
 two different implementations.  One is between the {{dnsmasq}}
 resolver on the client side and Nominum's {{Vantio_CacheServe}}
 upstream.  It uses EDNS option code 65073 from the "Reserved for
-Local/Experimental Use" range.  The other implementation is for
-Cisco's {{Umbrella}}, aka OpenDNS, which took option code 26946 from
-the middle of the "Unassigned" range.  This document codifies a more
-extensible format than Nominum's but currently less so than Cisco's,
-and is intended to supersede those non-standard options.  The authors
-recognize that Cisco's enhanced format is desired by at least a couple
-of organizations but present this simplied version as a starting point
-for discussion.
+Local/Experimental Use" range to pass the client's Media Access
+Control (MAC) address.  The other implementation is for Cisco's
+{{Umbrella}}, aka OpenDNS, which encodes the client's MAC address and
+complete IP address.  It uses option codes 26946 and 20292,
+respectively, from the middle of the "Unassigned" range.
+
+This document codifies a more flexible format that can accomodate the
+needs of both implementations, as well as other more opaque
+identifiers.  It is intended to supersede those non-standard options.
 
 This option is intended only for constrained environments where the
 use of the option can be carefully controlled.  It is completely
@@ -165,15 +167,6 @@ Forwarding Resolver
 instead passes that responsibility to another resolver, called a
 "Forwarder" in {{!RFC2308}} section 1.
 
-EUI-48
-: 48 bit Extended Unique Identifier.
-
-EUI-64
-: 64 bit Extended Unique Identifier.
-
-MAC
-: Media Access Control.
-
 Tailored Response
 : A response from a nameserver that is customized based on a
 policy defined for the client requesting the query.
@@ -191,11 +184,9 @@ as follows:
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
     2: |                        OPTION-LENGTH                      |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-    4: |                       IDENTIFIER-TYPE                     |
+    4: |                         ECID-DOMAIN                       /
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-    6: |                      CLIENT-IDENTIFIER                    |
-       /                                                           /
-       /                                                           /
+    N: |                      CLIENT-IDENTIFIER                    /
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
 OPTION-CODE
@@ -205,39 +196,19 @@ OPTION-LENGTH:
 : 2 octets per {{!RFC6891}}.  Contains the length of the payload
 following OPTION-LENGTH, in octets.
 
-IDENTIFIER-TYPE
-: 2 octets, indicates the format of the CLIENT-IDENTIFIER contained in
-the option. 
-
-  This document only defines the format for 3 different types of
-  CLIENT-IDENTIFIER; namely, a 48-bit MAC address, an IPv4 address, or
-  an IPv6 address. Including the IDENTIFIER-TYPE indicator as part of
-  the option allows for easy evolution of ECID to include other types
-  of identifying addresses, such as EUI-48 or EUI-64 {{?RFC7042}} or a
-  DHCP Unique Identifier {{?RFC3315}} and {{?RFC6355}}, as devices and
-  needs change. The IDENTIFIER-TYPE could even indicate that the
-  CLIENT-IDENTIFIER is a specially encrypted identifier that only the
-  DNS Nameserver can decrypt.
-
-  The following IDENTIFIER-TYPE values are defined. The values chosen
-  correspond to the address family codes as assigned by IANA in
-  {{Address_Family_Numbers}}.
-     IDENTIFIER-TYPE 16389 (0x40 0x05), 48 octet MAC address
-     IDENTIFIER-TYPE 1 (0x00 0x01), 32 octet IP version 4 address  
-     IDENTIFIER-TYPE 2 (0x00 0x02), 128 octet IP version 6 address  
-
-  Note that some initial implementations MAY limit support to the
-  IDENTIFIER-TYPE 16389 (48-bit MAC), with other defined
-  IDENTIFIER-TYPE values simply reserved as described above.
+ECID-DOMAIN
+: A variable length domain name that defines the context in which
+the identifier should be interpreted, encoded in uncompressed wire format.
 
 CLIENT-IDENTIFIER
-: variable number of octets, depending on the value of IDENTIFIER-TYPE.
+: A variable number of octets, depending on ECID-DOMAIN.  Its contents
+are opaque to this specification, only needing to be understood
+between a co-operating forwarder and full-service resolver.
 
-  The IDENTIFIER-TYPE, and its corresponding CLIENT-IDENTIFIER, fields
-  may be repeated in a single ECID option, increasing OPTION-LENGTH
-  correspondingly. However, the same IDENTIFIER-TYPE may not appear
-  more than once. (This should be reflected in the packet diagram but
-  I still have to hunt down whether there's a convention for that.
+The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
+repeated in a single ECID option, increasing OPTION-LENGTH
+correspondingly. However, the same ECID-DOMAIN may not appear more
+than once.
  
 All fields are in network byte order ("big-endian", per {{!RFC1700}},
 Data Notation).
@@ -253,16 +224,16 @@ by the local forwarding resolver.
 
 When a DNS forwarding resolver, provided as part of a router for
 example, receives a DNS query message from the originating client it
-adds any ECID IDENTIFIER-TYPE / CLIENT-IDENTIFIER pairs for
-IDENTIFIER-TYPEs that it supports but which are not present in the
-existing client request.  It then sends the request to the upstream
-full-service resolver.
+adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but
+which are not present in the existing client request.  It then sends
+the request to the upstream full-service resolver.
 
 Because the option contains personally identifiable information, it
 should be protected by either only being used within Autonomous
-Systems {{!RFC1930}} controlled by the same provider, or by going over
-an opaque channel such as DNS over TLS {{!RFC7858}}.  It MUST NOT be
-sent in clear-text across the Internet.
+Systems {{!RFC1930}} controlled by the same provider, by going over an
+opaque channel such as DNS over TLS {{!RFC7858}}, or by securely
+encodded and varying per request.  It MUST NOT be sent in clear-text
+across the Internet.
 
 ## DNS Response
 
@@ -275,7 +246,7 @@ For possible caching purposes, the forwarding resolver needs to know
 whether filtering affected the response.  If the name resolution
 involved any names for which customization was possible, even if such
 filtering resulted in delivering the original data, the response
-SHOULD include an ECID option which contains the IDENTIFIER-TYPE and
+SHOULD include an ECID option which contains the ECID-DOMAIN and
 CLIENT-IDENTIFIER that were considered for filtering.
 
 For example, if a filter is set such that only names in the
@@ -295,12 +266,22 @@ to just one second and the ECID option included as described above.
 
 If the request contains a malformed ECID option, such as
 CLIENT-IDENTIFIER not correctly matching the length of described by
-OPTION-LENGTH and IDENTIFIER-TYPE, the resolver SHOULD reply with DNS
+OPTION-LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS
 rcode FORMERR.
 
 If the resolver by policy does not respond to requests that are
-lacking ECID of the appropriate IDENTIFIER-TYPE, it SHOULD reply with
-DNS rcode REFUSED.
+lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS
+rcode REFUSED.
+
+# Example
+
+The current use of option 26946 by Umbrella encodes 64 bits of device
+identification following the 7 octet string "OpenDNS".  To use the
+ECDI option they would instead use an ECDI-DOMAIN such as
+eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
+also add the IP address they currently send with option 20292 they
+would use something like ip4.umbrella.com or ip6.umbrella.com and the
+corresponding IPv4 or IPv6 address.
 
 # NAT Considerations
 

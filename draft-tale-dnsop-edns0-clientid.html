@@ -381,13 +381,14 @@
 <link href="#rfc.section.5" rel="Chapter" title="5 Protocol Description"/>
 <link href="#rfc.section.5.1" rel="Chapter" title="5.1 DNS Query"/>
 <link href="#rfc.section.5.2" rel="Chapter" title="5.2 DNS Response"/>
-<link href="#rfc.section.6" rel="Chapter" title="6 NAT Considerations"/>
-<link href="#rfc.section.7" rel="Chapter" title="7 Security Considerations"/>
-<link href="#rfc.section.8" rel="Chapter" title="8 IANA Considerations"/>
-<link href="#rfc.section.9" rel="Chapter" title="9 Acknowledgements"/>
-<link href="#rfc.references" rel="Chapter" title="10 References"/>
-<link href="#rfc.references.1" rel="Chapter" title="10.1 Normative References"/>
-<link href="#rfc.references.2" rel="Chapter" title="10.2 Informative References"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 Example"/>
+<link href="#rfc.section.7" rel="Chapter" title="7 NAT Considerations"/>
+<link href="#rfc.section.8" rel="Chapter" title="8 Security Considerations"/>
+<link href="#rfc.section.9" rel="Chapter" title="9 IANA Considerations"/>
+<link href="#rfc.section.10" rel="Chapter" title="10 Acknowledgements"/>
+<link href="#rfc.references" rel="Chapter" title="11 References"/>
+<link href="#rfc.references.1" rel="Chapter" title="11.1 Normative References"/>
+<link href="#rfc.references.2" rel="Chapter" title="11.2 Informative References"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
 
@@ -396,7 +397,7 @@
 
   <meta name="dct.creator" content="Licht, R. and D. Lawrence, Ed." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-tale-dnsop-edns0-clientid-00" />
-  <meta name="dct.issued" scheme="ISO8601" content="2017-2-23" />
+  <meta name="dct.issued" scheme="ISO8601" content="2017-2" />
   <meta name="dct.abstract" content="This draft defines a DNS EDNS option to carry a client-specific identifier in DNS queries, with guidance for privacy protection of such information." />
   <meta name="description" content="This draft defines a DNS EDNS option to carry a client-specific identifier in DNS queries, with guidance for privacy protection of such information." />
 
@@ -420,12 +421,12 @@
   <td class="right">D. Lawrence, Ed.</td>
 </tr>
 <tr>
-  <td class="left">Expires: August 27, 2017</td>
+  <td class="left">Expires: August 5, 2017</td>
   <td class="right">Akamai Technologies</td>
 </tr>
 <tr>
   <td class="left"></td>
-  <td class="right">February 23, 2017</td>
+  <td class="right">February 2017</td>
 </tr>
 
     	
@@ -439,13 +440,14 @@
   <a href="#rfc.abstract">Abstract</a>
 </h1>
 <p>This draft defines a DNS EDNS option to carry a client-specific identifier in DNS queries, with guidance for privacy protection of such information.</p>
+<p>[ Ed note: Text inside square brackets ([]) is additional background information, answers to frequently asked questions, general musings, etc.  They will be removed before publication.  This document is being collaborated on in Github at &lt;https://github.com/vttale/edns0-clientid&gt;.  The most recent version of the document, open issues, etc should all be available here.  The authors gratefully accept pull requests. ]</p>
 <h1 id="rfc.status">
   <a href="#rfc.status">Status of This Memo</a>
 </h1>
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on August 27, 2017.</p>
+<p>This Internet-Draft will expire on August 5, 2017.</p>
 <h1 id="rfc.copyrightnotice">
   <a href="#rfc.copyrightnotice">Copyright Notice</a>
 </h1>
@@ -464,13 +466,14 @@
 <li>5.   <a href="#rfc.section.5">Protocol Description</a></li>
 <ul><li>5.1.   <a href="#rfc.section.5.1">DNS Query</a></li>
 <li>5.2.   <a href="#rfc.section.5.2">DNS Response</a></li>
-</ul><li>6.   <a href="#rfc.section.6">NAT Considerations</a></li>
-<li>7.   <a href="#rfc.section.7">Security Considerations</a></li>
-<li>8.   <a href="#rfc.section.8">IANA Considerations</a></li>
-<li>9.   <a href="#rfc.section.9">Acknowledgements</a></li>
-<li>10.   <a href="#rfc.references">References</a></li>
-<ul><li>10.1.   <a href="#rfc.references.1">Normative References</a></li>
-<li>10.2.   <a href="#rfc.references.2">Informative References</a></li>
+</ul><li>6.   <a href="#rfc.section.6">Example</a></li>
+<li>7.   <a href="#rfc.section.7">NAT Considerations</a></li>
+<li>8.   <a href="#rfc.section.8">Security Considerations</a></li>
+<li>9.   <a href="#rfc.section.9">IANA Considerations</a></li>
+<li>10.   <a href="#rfc.section.10">Acknowledgements</a></li>
+<li>11.   <a href="#rfc.references">References</a></li>
+<ul><li>11.1.   <a href="#rfc.references.1">Normative References</a></li>
+<li>11.2.   <a href="#rfc.references.2">Informative References</a></li>
 </ul><li><a href="#rfc.authors">Authors' Addresses</a></li>
 
 
@@ -480,13 +483,14 @@
 <p id="rfc.section.1.p.1">Some DNS operators generate, or wish to generate, customized DNS responses based on the originator of a DNS query.  For example, <a href="#RFC7871">[RFC7871]</a>, "Client Subnet in DNS Queries", defines a method to convey partial IP network address information about the device that originated a DNS request, so that a response could be targeted to be topographically near the source.</p>
 <p id="rfc.section.1.p.2">Some specialized services, however, need more precise client identity information to function adequately.  For example, a parental control service that restricts access to particular domains from particular devices needs to have a device-specific identifier.</p>
 <p id="rfc.section.1.p.3">This document defines an EDNS <a href="#RFC6891">[RFC6891]</a> option to convey client identification information that is relevant to the DNS query.  It is added by software on the client's local area network, for transmission to the upstream DNS provider.</p>
-<p id="rfc.section.1.p.4">A similar EDNS option is already being used on the public Internet in two different implementations.  One is between the <a href="#dnsmasq">[dnsmasq]</a> resolver on the client side and Nominum's <a href="#Vantio_CacheServe">[Vantio_CacheServe]</a> upstream.  It uses EDNS option code 65073 from the "Reserved for Local/Experimental Use" range.  The other implementation is for Cisco's <a href="#Umbrella">[Umbrella]</a>, aka OpenDNS, which took option code 26946 from the middle of the "Unassigned" range.  This document codifies a more extensible format than Nominum's but currently less so than Cisco's, and is intended to supersede those non-standard options.  The authors recognize that Cisco's enhanced format is desired by at least a couple of organizations but present this simplied version as a starting point for discussion.</p>
-<p id="rfc.section.1.p.5">This option is intended only for constrained environments where the use of the option can be carefully controlled.  It is completely optional and should be ignored by most DNS software.</p>
+<p id="rfc.section.1.p.4">A similar EDNS option is already being used on the public Internet in two different implementations.  One is between the <a href="#dnsmasq">[dnsmasq]</a> resolver on the client side and Nominum's <a href="#Vantio_CacheServe">[Vantio_CacheServe]</a> upstream.  It uses EDNS option code 65073 from the "Reserved for Local/Experimental Use" range to pass the client's Media Access Control (MAC) address.  The other implementation is for Cisco's <a href="#Umbrella">[Umbrella]</a>, aka OpenDNS, which encodes the client's MAC address and complete IP address.  It uses option codes 26946 and 20292, respectively, from the middle of the "Unassigned" range.</p>
+<p id="rfc.section.1.p.5">This document codifies a more flexible format that can accomodate the needs of both implementations, as well as other more opaque identifiers.  It is intended to supersede those non-standard options.</p>
+<p id="rfc.section.1.p.6">This option is intended only for constrained environments where the use of the option can be carefully controlled.  It is completely optional and should be ignored by most DNS software.</p>
 <h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a></h1>
 <p id="rfc.section.2.p.1">The IETF is actively working on enhancing DNS privacy <a href="#DPRIVE_Working_Group">[DPRIVE_Working_Group]</a>, and the reinjection of personally identifiable information has been identified as a problematic design pattern <a href="#I-D.hardie-privsec-metadata-insertion">[I-D.hardie-privsec-metadata-insertion]</a>.</p>
 <p id="rfc.section.2.p.2">Because this option trasmits information that is meant to identify specific clients, to be considered compliant with this draft implementations MUST NOT add the option without explicit opt-in by an administrator on the local area network.  For example, agreeing to the terms of service for a device-specific DNS filtering product would allow the option to be enabled, and only for communication to the product's DNS server(s).</p>
 <p id="rfc.section.2.p.3">Implementers need to be aware of the various laws and regulations governing handling personal data, but they are out of scope of this document.</p>
-<p id="rfc.section.2.p.4">No explicit provision is made in the protocol to opt-out.  For more discussion on this, see <a href="#security-considerations">Section 7</a>, "Security Considerations".</p>
+<p id="rfc.section.2.p.4">No explicit provision is made in the protocol to opt-out.  For more discussion on this, see <a href="#security-considerations">Section 8</a>, "Security Considerations".</p>
 <h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#terminology" id="terminology">Terminology</a></h1>
 <p id="rfc.section.3.p.1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in <a href="#RFC2119">[RFC2119]</a></p>
 <p id="rfc.section.3.p.2">For a comprehensive treatment of DNS terms, please see <a href="#RFC7719">[RFC7719]</a>.  This document uses the following additional terms:</p>
@@ -501,12 +505,6 @@
   <dd style="margin-left: 8">A DNS server capable of resolving a DNS query and formulating a response.</dd>
   <dt>Forwarding Resolver</dt>
   <dd style="margin-left: 8">A nameserver that does not do iterative resolution itself, but instead passes that responsibility to another resolver, called a "Forwarder" in <a href="#RFC2308">[RFC2308]</a> section 1.</dd>
-  <dt>EUI-48</dt>
-  <dd style="margin-left: 8">48 bit Extended Unique Identifier.</dd>
-  <dt>EUI-64</dt>
-  <dd style="margin-left: 8">64 bit Extended Unique Identifier.</dd>
-  <dt>MAC</dt>
-  <dd style="margin-left: 8">Media Access Control.</dd>
   <dt>Tailored Response</dt>
   <dd style="margin-left: 8">A response from a nameserver that is customized based on a policy defined for the client requesting the query.</dd>
 </dl>
@@ -519,11 +517,9 @@
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 2: |                        OPTION-LENGTH                      |
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-4: |                       IDENTIFIER-TYPE                     |
+4: |                         ECID-DOMAIN                       /
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-6: |                      CLIENT-IDENTIFIER                    |
-   /                                                           /
-   /                                                           /
+N: |                      CLIENT-IDENTIFIER                    /
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 </pre>
 <p/>
@@ -533,45 +529,42 @@
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  For ECID the code is TBD by IANA.</dd>
   <dt>OPTION-LENGTH:</dt>
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  Contains the length of the payload following OPTION-LENGTH, in octets.</dd>
-  <dt>IDENTIFIER-TYPE</dt>
-  <dd style="margin-left: 8">2 octets, indicates the format of the CLIENT-IDENTIFIER contained in the option.  This document only defines the format for 3 different types of CLIENT-IDENTIFIER; namely, a 48-bit MAC address, an IPv4 address, or an IPv6 address. Including the IDENTIFIER-TYPE indicator as part of the option allows for easy evolution of ECID to include other types of identifying addresses, such as EUI-48 or EUI-64 <a href="#RFC7042">[RFC7042]</a> or a DHCP Unique Identifier <a href="#RFC3315">[RFC3315]</a> and <a href="#RFC6355">[RFC6355]</a>, as devices and needs change. The IDENTIFIER-TYPE could even indicate that the CLIENT-IDENTIFIER is a specially encrypted identifier that only the DNS Nameserver can decrypt.  The following IDENTIFIER-TYPE values are defined. The values chosen correspond to the address family codes as assigned by IANA in <a href="#Address_Family_Numbers">[Address_Family_Numbers]</a>.  IDENTIFIER-TYPE 16389 (0x40 0x05), 48 octet MAC address IDENTIFIER-TYPE 1 (0x00 0x01), 32 octet IP version 4 address<br/> IDENTIFIER-TYPE 2 (0x00 0x02), 128 octet IP version 6 address Note that some initial implementations MAY limit support to the IDENTIFIER-TYPE 16389 (48-bit MAC), with other defined IDENTIFIER-TYPE values simply reserved as described above.</dd>
+  <dt>ECID-DOMAIN</dt>
+  <dd style="margin-left: 8">A variable length domain name that defines the context in which the identifier should be interpreted, encoded in uncompressed wire format.</dd>
   <dt>CLIENT-IDENTIFIER</dt>
-  <dd style="margin-left: 8">variable number of octets, depending on the value of IDENTIFIER-TYPE.  The IDENTIFIER-TYPE, and its corresponding CLIENT-IDENTIFIER, fields may be repeated in a single ECID option, increasing OPTION-LENGTH correspondingly. However, the same IDENTIFIER-TYPE may not appear more than once. (This should be reflected in the packet diagram but I still have to hunt down whether there's a convention for that.</dd>
+  <dd style="margin-left: 8">A variable number of octets, depending on ECID-DOMAIN.  Its contents are opaque to this specification, only needing to be understood between a co-operating forwarder and full-service resolver.</dd>
 </dl>
-<p id="rfc.section.4.p.3">All fields are in network byte order ("big-endian", per <a href="#RFC1700">[RFC1700]</a>, Data Notation).</p>
+<p id="rfc.section.4.p.3">The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be repeated in a single ECID option, increasing OPTION-LENGTH correspondingly. However, the same ECID-DOMAIN may not appear more than once.</p>
+<p id="rfc.section.4.p.4">All fields are in network byte order ("big-endian", per <a href="#RFC1700">[RFC1700]</a>, Data Notation).</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#protocol-description" id="protocol-description">Protocol Description</a></h1>
 <h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#dns-query" id="dns-query">DNS Query</a></h1>
 <p id="rfc.section.5.1.p.1">Any client that originates a DNS query message MAY include the ECID option in the DNS Query message.  It is normally expected that the client itself would not do this, but rather that it will be added by the local forwarding resolver.</p>
-<p id="rfc.section.5.1.p.2">When a DNS forwarding resolver, provided as part of a router for example, receives a DNS query message from the originating client it adds any ECID IDENTIFIER-TYPE / CLIENT-IDENTIFIER pairs for IDENTIFIER-TYPEs that it supports but which are not present in the existing client request.  It then sends the request to the upstream full-service resolver.</p>
-<p id="rfc.section.5.1.p.3">Because the option contains personally identifiable information, it should be protected by either only being used within Autonomous Systems <a href="#RFC1930">[RFC1930]</a> controlled by the same provider, or by going over an opaque channel such as DNS over TLS <a href="#RFC7858">[RFC7858]</a>.  It MUST NOT be sent in clear-text across the Internet.</p>
+<p id="rfc.section.5.1.p.2">When a DNS forwarding resolver, provided as part of a router for example, receives a DNS query message from the originating client it adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but which are not present in the existing client request.  It then sends the request to the upstream full-service resolver.</p>
+<p id="rfc.section.5.1.p.3">Because the option contains personally identifiable information, it should be protected by either only being used within Autonomous Systems <a href="#RFC1930">[RFC1930]</a> controlled by the same provider, by going over an opaque channel such as DNS over TLS <a href="#RFC7858">[RFC7858]</a>, or by securely encodded and varying per request.  It MUST NOT be sent in clear-text across the Internet.</p>
 <h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#dns-response" id="dns-response">DNS Response</a></h1>
 <p id="rfc.section.5.2.p.1">The logic used by a full-service resolver to customize a response based on ECID is out of scope for this document.  The resolver MUST NOT include the ECID option in any queries that it makes to external authoritative DNS servers.</p>
-<p id="rfc.section.5.2.p.2">For possible caching purposes, the forwarding resolver needs to know whether filtering affected the response.  If the name resolution involved any names for which customization was possible, even if such filtering resulted in delivering the original data, the response SHOULD include an ECID option which contains the IDENTIFIER-TYPE and CLIENT-IDENTIFIER that were considered for filtering.</p>
+<p id="rfc.section.5.2.p.2">For possible caching purposes, the forwarding resolver needs to know whether filtering affected the response.  If the name resolution involved any names for which customization was possible, even if such filtering resulted in delivering the original data, the response SHOULD include an ECID option which contains the ECID-DOMAIN and CLIENT-IDENTIFIER that were considered for filtering.</p>
 <p id="rfc.section.5.2.p.3">For example, if a filter is set such that only names in the example.com domain are possibly restricted to some devices, then a request for foo.example.com would have the ECID in the response even when the request came from a device which was not restricted.  Requests for any other names would not include ECID in the response.</p>
 <p id="rfc.section.5.2.p.4">So that the caching forwarding resolver does not need to have any knowledge about what filters are in place, it is the full-service resolver's responsibility to adjust any TTLs in the response as might be dictated by the filter policy it has configured.  That is, if some name is filtered only between the hours of 09:00 and 17:00 and a request is received for that name at 16:59:59, the TTL on a positive response or the SOA ncache field on a negative response should be set to just one second and the ECID option included as described above.</p>
-<p id="rfc.section.5.2.p.5">If the request contains a malformed ECID option, such as CLIENT-IDENTIFIER not correctly matching the length of described by OPTION-LENGTH and IDENTIFIER-TYPE, the resolver SHOULD reply with DNS rcode FORMERR.</p>
-<p id="rfc.section.5.2.p.6">If the resolver by policy does not respond to requests that are lacking ECID of the appropriate IDENTIFIER-TYPE, it SHOULD reply with DNS rcode REFUSED.</p>
-<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#nat-considerations" id="nat-considerations">NAT Considerations</a></h1>
-<p id="rfc.section.6.p.1">Devices that perform Network Address Translation (NAT) need not give special consideration for ECID. NAT translates between a layer 3 private IP address assigned to a client device on the Local Area Network and a layer 3 public IP address for use within the Wide Area Network.</p>
-<p id="rfc.section.6.p.2">ECID information identifies a client device by a different means, e.g. its layer 2 address. A device's identifier is NOT impacted by NAT.  Therefore, DNS queries may be passed without modification of any ECID information.</p>
-<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
-<p id="rfc.section.7.p.1">The identifier of the client that initiated the request will be visible to all servers that are passed the ECID option, and the various devices on the path between the local network and the full-service resolver being used by the forwarding resolver.</p>
-<p id="rfc.section.7.p.2">DNS filtering products are easy circumvented and should not be considered real security measures.  With commonly available tools it is trivial to discover the non-filtered DNS responses and use them in place of the filtered responses.</p>
-<p id="rfc.section.7.p.3">Along those lines, opting out of this specific protocol is as simple as using a different resolver, such as a full-service resolver on the device itself or one of the well-known public resolvers.  Of course, other devices on the local network will still be able to see unencrypted DNS requests from the device, and the only way to really protect against such monitoring is to use an opaque tunnel to a trusted resolver.</p>
-<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
-<p id="rfc.section.8.p.1">IANA is requested to assign a new value in the DNS EDNS Option Codes registry for the Device ID option.</p>
-<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a></h1>
-<p id="rfc.section.9.p.1">The authors wish to thank the Barry Greene, Martin Deen and Benjamin Petrin for their feedback and review during the initial development of this document.</p>
-<h1 id="rfc.references"><a href="#rfc.references">10.</a> References</h1>
-<h1 id="rfc.references.1"><a href="#rfc.references.1">10.1.</a> Normative References</h1>
+<p id="rfc.section.5.2.p.5">If the request contains a malformed ECID option, such as CLIENT-IDENTIFIER not correctly matching the length of described by OPTION-LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS rcode FORMERR.</p>
+<p id="rfc.section.5.2.p.6">If the resolver by policy does not respond to requests that are lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS rcode REFUSED.</p>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#example" id="example">Example</a></h1>
+<p id="rfc.section.6.p.1">The current use of option 26946 by Umbrella encodes 64 bits of device identification following the 7 octet string "OpenDNS".  To use the ECDI option they would instead use an ECDI-DOMAIN such as eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to also add the IP address they currently send with option 20292 they would use something like ip4.umbrella.com or ip6.umbrella.com and the corresponding IPv4 or IPv6 address.</p>
+<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#nat-considerations" id="nat-considerations">NAT Considerations</a></h1>
+<p id="rfc.section.7.p.1">Devices that perform Network Address Translation (NAT) need not give special consideration for ECID. NAT translates between a layer 3 private IP address assigned to a client device on the Local Area Network and a layer 3 public IP address for use within the Wide Area Network.</p>
+<p id="rfc.section.7.p.2">ECID information identifies a client device by a different means, e.g. its layer 2 address. A device's identifier is NOT impacted by NAT.  Therefore, DNS queries may be passed without modification of any ECID information.</p>
+<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.8.p.1">The identifier of the client that initiated the request will be visible to all servers that are passed the ECID option, and the various devices on the path between the local network and the full-service resolver being used by the forwarding resolver.</p>
+<p id="rfc.section.8.p.2">DNS filtering products are easy circumvented and should not be considered real security measures.  With commonly available tools it is trivial to discover the non-filtered DNS responses and use them in place of the filtered responses.</p>
+<p id="rfc.section.8.p.3">Along those lines, opting out of this specific protocol is as simple as using a different resolver, such as a full-service resolver on the device itself or one of the well-known public resolvers.  Of course, other devices on the local network will still be able to see unencrypted DNS requests from the device, and the only way to really protect against such monitoring is to use an opaque tunnel to a trusted resolver.</p>
+<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
+<p id="rfc.section.9.p.1">IANA is requested to assign a new value in the DNS EDNS Option Codes registry for the Device ID option.</p>
+<h1 id="rfc.section.10"><a href="#rfc.section.10">10.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a></h1>
+<p id="rfc.section.10.p.1">The authors wish to thank the Barry Greene, Martin Deen and Benjamin Petrin for their feedback and review during the initial development of this document.</p>
+<h1 id="rfc.references"><a href="#rfc.references">11.</a> References</h1>
+<h1 id="rfc.references.1"><a href="#rfc.references.1">11.1.</a> Normative References</h1>
 <table>
   <tbody>
-    <tr>
-      <td class="reference">
-        <b id="Address_Family_Numbers">[Address_Family_Numbers]</b>
-      </td>
-      <td class="top"><a>IANA, .</a>, "<a href="http://www.iana.org/assignments/address-family-numbers/">Address Family Numbers</a>", n.d..</td>
-    </tr>
     <tr>
       <td class="reference">
         <b id="RFC1700">[RFC1700]</b>
@@ -622,7 +615,7 @@
     </tr>
   </tbody>
 </table>
-<h1 id="rfc.references.2"><a href="#rfc.references.2">10.2.</a> Informative References</h1>
+<h1 id="rfc.references.2"><a href="#rfc.references.2">11.2.</a> Informative References</h1>
 <table>
   <tbody>
     <tr>
@@ -642,24 +635,6 @@
         <b id="I-D.hardie-privsec-metadata-insertion">[I-D.hardie-privsec-metadata-insertion]</b>
       </td>
       <td class="top"><a>Hardie, T.</a>, "<a href="http://tools.ietf.org/html/draft-hardie-privsec-metadata-insertion-06">Design considerations for Metadata Insertion</a>", Internet-Draft draft-hardie-privsec-metadata-insertion-06, February 2017.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC3315">[RFC3315]</b>
-      </td>
-      <td class="top"><a>Droms, R.</a>, <a>Bound, J.</a>, <a>Volz, B.</a>, <a>Lemon, T.</a>, <a>Perkins, C.</a> and <a>M. Carney</a>, "<a href="http://tools.ietf.org/html/rfc3315">Dynamic Host Configuration Protocol for IPv6 (DHCPv6)</a>", RFC 3315, DOI 10.17487/RFC3315, July 2003.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC6355">[RFC6355]</b>
-      </td>
-      <td class="top"><a>Narten, T.</a> and <a>J. Johnson</a>, "<a href="http://tools.ietf.org/html/rfc6355">Definition of the UUID-Based DHCPv6 Unique Identifier (DUID-UUID)</a>", RFC 6355, DOI 10.17487/RFC6355, August 2011.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7042">[RFC7042]</b>
-      </td>
-      <td class="top"><a>Eastlake 3rd, D.</a> and <a>J. Abley</a>, "<a href="http://tools.ietf.org/html/rfc7042">IANA Considerations and IETF Protocol and Documentation Usage for IEEE 802 Parameters</a>", BCP 141, RFC 7042, DOI 10.17487/RFC7042, October 2013.</td>
     </tr>
     <tr>
       <td class="reference">

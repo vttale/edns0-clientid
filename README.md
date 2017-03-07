@@ -7,8 +7,8 @@
 DNSOP Working Group                                             R. Licht
 Internet-Draft                                    Charter Communications
 Intended status: Standards Track                        D. Lawrence, Ed.
-Expires: August 27, 2017                             Akamai Technologies
-                                                       February 23, 2017
+Expires: August 5, 2017                              Akamai Technologies
+                                                           February 2017
 
 
                    Client ID in Forwarded DNS Queries
@@ -19,6 +19,14 @@ Abstract
    This draft defines a DNS EDNS option to carry a client-specific
    identifier in DNS queries, with guidance for privacy protection of
    such information.
+
+   [ Ed note: Text inside square brackets ([]) is additional background
+   information, answers to frequently asked questions, general musings,
+   etc.  They will be removed before publication.  This document is
+   being collaborated on in Github at <https://github.com/vttale/
+   edns0-clientid>.  The most recent version of the document, open
+   issues, etc should all be available here.  The authors gratefully
+   accept pull requests. ]
 
 Status of This Memo
 
@@ -35,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 27, 2017.
+   This Internet-Draft will expire on August 5, 2017.
 
 Copyright Notice
 
@@ -61,13 +69,14 @@ Table of Contents
    5.  Protocol Description
      5.1.  DNS Query
      5.2.  DNS Response
-   6.  NAT Considerations
-   7.  Security Considerations
-   8.  IANA Considerations
-   9.  Acknowledgements
-   10. References
-     10.1.  Normative References
-     10.2.  Informative References
+   6.  Example
+   7.  NAT Considerations
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. Acknowledgements
+   11. References
+     11.1.  Normative References
+     11.2.  Informative References
    Authors' Addresses
 
 1.  Introduction
@@ -93,14 +102,15 @@ Table of Contents
    two different implementations.  One is between the [dnsmasq] resolver
    on the client side and Nominum's [Vantio_CacheServe] upstream.  It
    uses EDNS option code 65073 from the "Reserved for Local/Experimental
-   Use" range.  The other implementation is for Cisco's [Umbrella], aka
-   OpenDNS, which took option code 26946 from the middle of the
-   "Unassigned" range.  This document codifies a more extensible format
-   than Nominum's but currently less so than Cisco's, and is intended to
-   supersede those non-standard options.  The authors recognize that
-   Cisco's enhanced format is desired by at least a couple of
-   organizations but present this simplied version as a starting point
-   for discussion.
+   Use" range to pass the client's Media Access Control (MAC) address.
+   The other implementation is for Cisco's [Umbrella], aka OpenDNS,
+   which encodes the client's MAC address and complete IP address.  It
+   uses option codes 26946 and 20292, respectively, from the middle of
+   the "Unassigned" range.
+
+   This document codifies a more flexible format that can accomodate the
+   needs of both implementations, as well as other more opaque
+   identifiers.  It is intended to supersede those non-standard options.
 
    This option is intended only for constrained environments where the
    use of the option can be carefully controlled.  It is completely
@@ -126,7 +136,7 @@ Table of Contents
    document.
 
    No explicit provision is made in the protocol to opt-out.  For more
-   discussion on this, see Section 7, "Security Considerations".
+   discussion on this, see Section 8, "Security Considerations".
 
 3.  Terminology
 
@@ -148,12 +158,6 @@ Table of Contents
       resolution itself, but instead passes that responsibility to
       another resolver, called a "Forwarder" in [RFC2308] section 1.
 
-   EUI-48  48 bit Extended Unique Identifier.
-
-   EUI-64  64 bit Extended Unique Identifier.
-
-   MAC  Media Access Control.
-
    Tailored Response  A response from a nameserver that is customized
       based on a policy defined for the client requesting the query.
 
@@ -169,11 +173,9 @@ Table of Contents
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
    2: |                        OPTION-LENGTH                      |
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   4: |                       IDENTIFIER-TYPE                     |
+   4: |                         ECID-DOMAIN                       /
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   6: |                      CLIENT-IDENTIFIER                    |
-      /                                                           /
-      /                                                           /
+   N: |                      CLIENT-IDENTIFIER                    /
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
    OPTION-CODE  2 octets per [RFC6891].  For ECID the code is TBD by
@@ -182,33 +184,19 @@ Table of Contents
    OPTION-LENGTH:  2 octets per [RFC6891].  Contains the length of the
       payload following OPTION-LENGTH, in octets.
 
-   IDENTIFIER-TYPE  2 octets, indicates the format of the CLIENT-
-      IDENTIFIER contained in the option.  This document only defines
-      the format for 3 different types of CLIENT-IDENTIFIER; namely, a
-      48-bit MAC address, an IPv4 address, or an IPv6 address.
-      Including the IDENTIFIER-TYPE indicator as part of the option
-      allows for easy evolution of ECID to include other types of
-      identifying addresses, such as EUI-48 or EUI-64 [RFC7042] or a
-      DHCP Unique Identifier [RFC3315] and [RFC6355], as devices and
-      needs change.  The IDENTIFIER-TYPE could even indicate that the
-      CLIENT-IDENTIFIER is a specially encrypted identifier that only
-      the DNS Nameserver can decrypt.  The following IDENTIFIER-TYPE
-      values are defined.  The values chosen correspond to the address
-      family codes as assigned by IANA in [Address_Family_Numbers].
-      IDENTIFIER-TYPE 16389 (0x40 0x05), 48 octet MAC address
-      IDENTIFIER-TYPE 1 (0x00 0x01), 32 octet IP version 4 address
-      IDENTIFIER-TYPE 2 (0x00 0x02), 128 octet IP version 6 address Note
-      that some initial implementations MAY limit support to the
-      IDENTIFIER-TYPE 16389 (48-bit MAC), with other defined IDENTIFIER-
-      TYPE values simply reserved as described above.
+   ECID-DOMAIN  A variable length domain name that defines the context
+      in which the identifier should be interpreted, encoded in
+      uncompressed wire format.
 
-   CLIENT-IDENTIFIER  variable number of octets, depending on the value
-      of IDENTIFIER-TYPE.  The IDENTIFIER-TYPE, and its corresponding
-      CLIENT-IDENTIFIER, fields may be repeated in a single ECID option,
-      increasing OPTION-LENGTH correspondingly.  However, the same
-      IDENTIFIER-TYPE may not appear more than once.  (This should be
-      reflected in the packet diagram but I still have to hunt down
-      whether there's a convention for that.
+   CLIENT-IDENTIFIER  A variable number of octets, depending on ECID-
+      DOMAIN.  Its contents are opaque to this specification, only
+      needing to be understood between a co-operating forwarder and
+      full-service resolver.
+
+   The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
+   repeated in a single ECID option, increasing OPTION-LENGTH
+   correspondingly.  However, the same ECID-DOMAIN may not appear more
+   than once.
 
    All fields are in network byte order ("big-endian", per [RFC1700],
    Data Notation).
@@ -224,16 +212,16 @@ Table of Contents
 
    When a DNS forwarding resolver, provided as part of a router for
    example, receives a DNS query message from the originating client it
-   adds any ECID IDENTIFIER-TYPE / CLIENT-IDENTIFIER pairs for
-   IDENTIFIER-TYPEs that it supports but which are not present in the
-   existing client request.  It then sends the request to the upstream
-   full-service resolver.
+   adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but
+   which are not present in the existing client request.  It then sends
+   the request to the upstream full-service resolver.
 
    Because the option contains personally identifiable information, it
    should be protected by either only being used within Autonomous
-   Systems [RFC1930] controlled by the same provider, or by going over
-   an opaque channel such as DNS over TLS [RFC7858].  It MUST NOT be
-   sent in clear-text across the Internet.
+   Systems [RFC1930] controlled by the same provider, by going over an
+   opaque channel such as DNS over TLS [RFC7858], or by securely
+   encodded and varying per request.  It MUST NOT be sent in clear-text
+   across the Internet.
 
 5.2.  DNS Response
 
@@ -246,7 +234,7 @@ Table of Contents
    whether filtering affected the response.  If the name resolution
    involved any names for which customization was possible, even if such
    filtering resulted in delivering the original data, the response
-   SHOULD include an ECID option which contains the IDENTIFIER-TYPE and
+   SHOULD include an ECID option which contains the ECID-DOMAIN and
    CLIENT-IDENTIFIER that were considered for filtering.
 
    For example, if a filter is set such that only names in the
@@ -266,14 +254,24 @@ Table of Contents
 
    If the request contains a malformed ECID option, such as CLIENT-
    IDENTIFIER not correctly matching the length of described by OPTION-
-   LENGTH and IDENTIFIER-TYPE, the resolver SHOULD reply with DNS rcode
+   LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS rcode
    FORMERR.
 
    If the resolver by policy does not respond to requests that are
-   lacking ECID of the appropriate IDENTIFIER-TYPE, it SHOULD reply with
-   DNS rcode REFUSED.
+   lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS
+   rcode REFUSED.
 
-6.  NAT Considerations
+6.  Example
+
+   The current use of option 26946 by Umbrella encodes 64 bits of device
+   identification following the 7 octet string "OpenDNS".  To use the
+   ECDI option they would instead use an ECDI-DOMAIN such as
+   eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
+   also add the IP address they currently send with option 20292 they
+   would use something like ip4.umbrella.com or ip6.umbrella.com and the
+   corresponding IPv4 or IPv6 address.
+
+7.  NAT Considerations
 
    Devices that perform Network Address Translation (NAT) need not give
    special consideration for ECID.  NAT translates between a layer 3
@@ -286,7 +284,7 @@ Table of Contents
    NAT.  Therefore, DNS queries may be passed without modification of
    any ECID information.
 
-7.  Security Considerations
+8.  Security Considerations
 
    The identifier of the client that initiated the request will be
    visible to all servers that are passed the ECID option, and the
@@ -306,24 +304,20 @@ Table of Contents
    protect against such monitoring is to use an opaque tunnel to a
    trusted resolver.
 
-8.  IANA Considerations
+9.  IANA Considerations
 
    IANA is requested to assign a new value in the DNS EDNS Option Codes
    registry for the Device ID option.
 
-9.  Acknowledgements
+10.  Acknowledgements
 
    The authors wish to thank the Barry Greene, Martin Deen and Benjamin
    Petrin for their feedback and review during the initial development
    of this document.
 
-10.  References
+11.  References
 
-10.1.  Normative References
-
-   [Address_Family_Numbers]
-              IANA, ., "Address Family Numbers", n.d.,
-              <http://www.iana.org/assignments/address-family-numbers/>.
+11.1.  Normative References
 
    [RFC1700]  Reynolds, J. and J. Postel, "Assigned Numbers", RFC 1700,
               DOI 10.17487/RFC1700, October 1994,
@@ -362,7 +356,7 @@ Table of Contents
               DOI 10.17487/RFC7871, May 2016,
               <http://www.rfc-editor.org/info/rfc7871>.
 
-10.2.  Informative References
+11.2.  Informative References
 
    [dnsmasq]  Kelley, S., "dnsmasq", n.d.,
               <http://www.thekelleys.org.uk/dnsmasq/doc.html>.
@@ -375,21 +369,6 @@ Table of Contents
               Hardie, T., "Design considerations for Metadata
               Insertion", draft-hardie-privsec-metadata-insertion-06
               (work in progress), February 2017.
-
-   [RFC3315]  Droms, R., Ed., Bound, J., Volz, B., Lemon, T., Perkins,
-              C., and M. Carney, "Dynamic Host Configuration Protocol
-              for IPv6 (DHCPv6)", RFC 3315, DOI 10.17487/RFC3315, July
-              2003, <http://www.rfc-editor.org/info/rfc3315>.
-
-   [RFC6355]  Narten, T. and J. Johnson, "Definition of the UUID-Based
-              DHCPv6 Unique Identifier (DUID-UUID)", RFC 6355,
-              DOI 10.17487/RFC6355, August 2011,
-              <http://www.rfc-editor.org/info/rfc6355>.
-
-   [RFC7042]  Eastlake 3rd, D. and J. Abley, "IANA Considerations and
-              IETF Protocol and Documentation Usage for IEEE 802
-              Parameters", BCP 141, RFC 7042, DOI 10.17487/RFC7042,
-              October 2013, <http://www.rfc-editor.org/info/rfc7042>.
 
    [Umbrella]
               Cisco Systems, Inc., "Umbrella", n.d.,
