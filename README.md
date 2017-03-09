@@ -25,7 +25,7 @@ Ed note
    Text inside square brackets ([]) is additional background
    information, answers to frequently asked questions, general musings,
    etc.  They will be removed before publication.  This document is
-   being collaborated on in Github at <https://github.com/vttale/
+   being collaborated on in GitHub at <https://github.com/vttale/
    edns0-clientid>.  The most recent version of the document, open
    issues, etc should all be available here.  The authors gratefully
    accept pull requests.
@@ -71,14 +71,15 @@ Table of Contents
    5.  Protocol Description
      5.1.  DNS Query
      5.2.  DNS Response
-   6.  Example
-   7.  NAT Considerations
-   8.  Security Considerations
-   9.  IANA Considerations
-   10. Acknowledgements
-   11. References
-     11.1.  Normative References
-     11.2.  Informative References
+   6.  Using the DNS Address Family
+   7.  Implementation Status
+   8.  NAT Considerations
+   9.  Security Considerations
+   10. IANA Considerations
+   11. Acknowledgements
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
    Authors' Addresses
 
 1.  Introduction
@@ -110,22 +111,22 @@ Table of Contents
    uses option codes 26946 and 20292, respectively, from the middle of
    the "Unassigned" range.
 
-   This document codifies a more flexible format that can accomodate the
-   needs of both implementations, as well as other more opaque
+   This document codifies a more flexible format that can accommodate
+   the needs of both implementations, as well as other more opaque
    identifiers.  It is intended to supersede those non-standard options.
 
-   This option is intended only for constrained environments where the
-   use of the option can be carefully controlled.  It is completely
-   optional and should be ignored by most DNS software.
+   This option is intended only for constrained environments where its
+   use can be carefully controlled.  It is completely optional and
+   should be ignored by most DNS software.
 
 2.  Privacy Considerations
 
    The IETF is actively working on enhancing DNS privacy
-   [DPRIVE_Working_Group], and the reinjection of personally
+   [DPRIVE_Working_Group], and the re-injection of personally
    identifiable information has been identified as a problematic design
    pattern [I-D.hardie-privsec-metadata-insertion].
 
-   Because this option trasmits information that is meant to identify
+   Because this option transmits information that is meant to identify
    specific clients, to be considered compliant with this draft
    implementations MUST NOT add the option without explicit opt-in by an
    administrator on the local area network.  For example, agreeing to
@@ -138,7 +139,7 @@ Table of Contents
    document.
 
    No explicit provision is made in the protocol to opt-out.  For more
-   discussion on this, see Section 8, "Security Considerations".
+   discussion on this, see Section 9, "Security Considerations".
 
 3.  Terminology
 
@@ -175,9 +176,11 @@ Table of Contents
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
    2: |                        OPTION-LENGTH                      |
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   4: |                         ECID-DOMAIN                       /
+   4: |                       ADDRESS-FAMILY                      |
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   N: |                      CLIENT-IDENTIFIER                    /
+   6: |                                                           /
+      /                      CLIENT-IDENTIFIER                    /
+      /                                                           /
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
    OPTION-CODE:  2 octets per [RFC6891].  For ECID the code is TBD by
@@ -186,27 +189,39 @@ Table of Contents
    OPTION-LENGTH:  2 octets per [RFC6891].  Contains the length of the
       payload following OPTION-LENGTH, in octets.
 
-   ECID-DOMAIN:  A variable length domain name that defines the context
-      in which the identifier should be interpreted, encoded in
-      uncompressed wire format.
+   ADDRESS-FAMILY:  2 octets per [Address_Family_Numbers], describing
+      the format of CLIENT-IDENTIFIER as elaborated below.
 
-   CLIENT-IDENTIFIER:  A variable number of octets, depending on ECID-
-      DOMAIN.  Its contents are opaque to this specification, only
-      needing to be understood between a co-operating forwarder and
-      full-service resolver.
-
-   The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
-   repeated in a single ECID option, increasing OPTION-LENGTH
-   correspondingly.  However, the same ECID-DOMAIN may not appear more
-   than once.
-
-   [A domain name is used to identify the payload in order to provide
-   protection against conflicts with other users of the option without
-   the burden of Yet Another IANA Registry to manage Yet Another Two
-   Byte Code.  The downside is slightly longer message lengths. ]
+   CLIENT-IDENTIFIER:  A variable number of octets, depending on
+      ADDRESS-FAMILY.
 
    All fields are in network byte order ("big-endian", per [RFC1700],
    Data Notation).
+
+   This draft only specifies behaviour for the following ADDRESS-FAMILY
+   values and the corresponding CLIENT-IDENTIFIER lengths:
+
+   o  1 (0x0001, IP version 4): 4 octets, fixed.
+
+   o  2 (0x0002, IP version 6): 16 octets, fixed.
+
+   o  5 (0x0005, Domain Name System): Variable-length domain name in
+      uncompressed wire format followed by a variable-length custom
+      token.
+
+   o  16389 (0x4005, 48-bit MAC): 6 octets, fixed.
+
+   The use of Domain Name System as an address family is to facilitate
+   custom tokens that are not well-described by the concept of address,
+   as described in Section 6.
+
+   Other types of identifying addresses, such as a 64-bit MAC [RFC7042]
+   or a DHCP Unique Identifier [RFC3315] and [RFC6355] could be
+   accommodated as devices and needs change. [ Why not just bless those
+   obvious candidates now? ]
+
+   Multiple ECID options MAY appear in the OPT record.  However, the
+   same ADDRESS-FAMILY SHOULD not appear more than once.
 
 5.  Protocol Description
 
@@ -219,9 +234,9 @@ Table of Contents
 
    When a DNS forwarding resolver, provided as part of a router for
    example, receives a DNS query message from the originating client it
-   adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but
-   which are not present in the existing client request.  It then sends
-   the request to the upstream full-service resolver.
+   adds any ADDRESS-FAMILY / CLIENT-IDENTIFIER pairs that it supports
+   but which are not present in the existing client request.  It then
+   sends the request to the upstream full-service resolver.
 
    Because the option contains personally identifiable information, it
    should be protected by either only being used within Autonomous
@@ -241,8 +256,8 @@ Table of Contents
    whether filtering affected the response.  If the name resolution
    involved any names for which customization was possible, even if such
    filtering resulted in delivering the original data, the response
-   SHOULD include an ECID option which contains the ECID-DOMAIN and
-   CLIENT-IDENTIFIER that were considered for filtering.
+   SHOULD include an ECID option which contains the FAMILY-ADDRESS and
+   CLIENT-IDENTIFIER pairs that were considered for filtering.
 
    For example, if a filter is set such that only names in the
    example.com domain are possibly restricted to some devices, then a
@@ -261,37 +276,62 @@ Table of Contents
 
    If the request contains a malformed ECID option, such as CLIENT-
    IDENTIFIER not correctly matching the length of described by OPTION-
-   LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS rcode
+   LENGTH and ADDRESS-FAMILY, the resolver SHOULD reply with DNS rcode
    FORMERR.
 
    If the resolver by policy does not respond to requests that are
-   lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS
-   rcode REFUSED.
+   lacking ECID of the appropriate ADDRESS-FAMILY, it SHOULD reply with
+   DNS rcode REFUSED.
 
-6.  Example
+6.  Using the DNS Address Family
 
-   The current use of option 26946 by Umbrella encodes 64 bits of device
-   identification following the 7 octet string "OpenDNS".  To use the
-   ECID option they would instead use an ECID-DOMAIN such as
-   eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
-   also add the IP address they currently send with option 20292 they
-   would use something like ip4.umbrella.com or ip6.umbrella.com and the
-   corresponding IPv4 or IPv6 address.
+   When ADDRESS-FAMILY 15 is used, the uncompressed wire format of the
+   domain name is followed by a token that is otherwise opaque to this
+   specification.  The length of that token is defined by OPTION-LENGTH
+   less the two octets used for ADDRESS-FAMILY and the length of the
+   domain name.
 
-7.  NAT Considerations
+   The name used SHOULD be in a namespace that is controlled by the
+   service provider that is using the option, but need not be resolvable
+   in the DNS.  We RECOMMEND that providers use short domain names to
+   minimize DNS packet length.
 
-   Devices that perform Network Address Translation (NAT) need not give
-   special consideration for ECID.  NAT translates between a layer 3
-   private IP address assigned to a client device on the Local Area
+   The domain name provides protection against conflicts with other
+   users of the option without the burden of creating yet another IANA
+   Registry to manage yet another two-octet code.  Co-operating
+   forwarder/resolver pairs are the only users of the data who need to
+   be concerned with its format.
+
+7.  Implementation Status
+
+   [RFC Editor: per RFC 6982 this section should be removed prior to
+   publication.]
+
+   The protocol proposed here is not currently used anywhere exactly as
+   described, though the Nominum and Umbrella implementations are
+   substantially similar.
+
+   The authors know of at least two providers who wish to have it
+   properly standardized and would implement the standard in preference
+   to either of the existing non-standard methods.
+
+8.  NAT Considerations
+
+   Devices that perform Network Address Translation (NAT) SHOULD NOT
+   give special consideration for ECID.  NAT translates between a layer
+   3 private IP address assigned to a client device on the Local Area
    Network and a layer 3 public IP address for use within the Wide Area
-   Network.
+   Network.  If ECID is being used to pass an IPv4 or IPv6 address, it
+   SHOULD use the internal address without NAT translation, because
+   transforming it to the public address of the NAT device would
+   coalesce all internal devices to just one address.
 
-   ECID information identifies a client device by a different means,
-   e.g. its layer 2 address.  A device's identifier is NOT impacted by
-   NAT.  Therefore, DNS queries may be passed without modification of
-   any ECID information.
+   Other ECID options identify a client device by a different means,
+   e.g. its layer 2 address.  This sort of device's identifier is not
+   impacted by NAT.  Therefore, DNS queries may be passed without
+   modification of any ECID information.
 
-8.  Security Considerations
+9.  Security Considerations
 
    The identifier of the client that initiated the request will be
    visible to all servers that are passed the ECID option, and the
@@ -311,20 +351,24 @@ Table of Contents
    protect against such monitoring is to use an opaque tunnel to a
    trusted resolver.
 
-9.  IANA Considerations
+10.  IANA Considerations
 
    IANA is requested to assign a new value in the DNS EDNS Option Codes
    registry for the Device ID option.
 
-10.  Acknowledgements
+11.  Acknowledgements
 
-   The authors wish to thank the Barry Greene, Martin Deen and Benjamin
-   Petrin for their feedback and review during the initial development
-   of this document.
+   The authors wish to thank the Barry Greene, Martin Deen, Benjamin
+   Petrin, and Robert Fleischman for their feedback and review during
+   the initial development of this document.
 
-11.  References
+12.  References
 
-11.1.  Normative References
+12.1.  Normative References
+
+   [Address_Family_Numbers]
+              IANA, ., "Address Family Numbers", n.d.,
+              <http://www.iana.org/assignments/address-family-numbers/>.
 
    [RFC1700]  Reynolds, J. and J. Postel, "Assigned Numbers", RFC 1700,
               DOI 10.17487/RFC1700, October 1994,
@@ -363,7 +407,7 @@ Table of Contents
               DOI 10.17487/RFC7871, May 2016,
               <http://www.rfc-editor.org/info/rfc7871>.
 
-11.2.  Informative References
+12.2.  Informative References
 
    [dnsmasq]  Kelley, S., "dnsmasq", n.d.,
               <http://www.thekelleys.org.uk/dnsmasq/doc.html>.
@@ -374,8 +418,23 @@ Table of Contents
 
    [I-D.hardie-privsec-metadata-insertion]
               Hardie, T., "Design considerations for Metadata
-              Insertion", draft-hardie-privsec-metadata-insertion-06
-              (work in progress), February 2017.
+              Insertion", draft-hardie-privsec-metadata-insertion-07
+              (work in progress), March 2017.
+
+   [RFC3315]  Droms, R., Ed., Bound, J., Volz, B., Lemon, T., Perkins,
+              C., and M. Carney, "Dynamic Host Configuration Protocol
+              for IPv6 (DHCPv6)", RFC 3315, DOI 10.17487/RFC3315, July
+              2003, <http://www.rfc-editor.org/info/rfc3315>.
+
+   [RFC6355]  Narten, T. and J. Johnson, "Definition of the UUID-Based
+              DHCPv6 Unique Identifier (DUID-UUID)", RFC 6355,
+              DOI 10.17487/RFC6355, August 2011,
+              <http://www.rfc-editor.org/info/rfc6355>.
+
+   [RFC7042]  Eastlake 3rd, D. and J. Abley, "IANA Considerations and
+              IETF Protocol and Documentation Usage for IEEE 802
+              Parameters", BCP 141, RFC 7042, DOI 10.17487/RFC7042,
+              October 2013, <http://www.rfc-editor.org/info/rfc7042>.
 
    [Umbrella]
               Cisco Systems, Inc., "Umbrella", n.d.,

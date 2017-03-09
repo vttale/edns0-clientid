@@ -12,6 +12,9 @@
 <!ENTITY RFC1930 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.1930.xml">
 <!ENTITY RFC7858 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7858.xml">
 <!ENTITY I-D.hardie-privsec-metadata-insertion SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.hardie-privsec-metadata-insertion.xml">
+<!ENTITY RFC7042 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.7042.xml">
+<!ENTITY RFC3315 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.3315.xml">
+<!ENTITY RFC6355 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.6355.xml">
 ]>
 
 <?rfc toc="yes"?>
@@ -72,7 +75,7 @@ such information.</t>
 <t>Text inside square brackets ([]) is additional background
 information, answers to frequently asked questions, general musings,
 etc.  They will be removed before publication.  This document is being
-collaborated on in Github at
+collaborated on in GitHub at
 &lt;https://github.com/vttale/edns0-clientid&gt;.  The most recent
 version of the document, open issues, etc should all be available
 here.  The authors gratefully accept pull requests.</t>
@@ -115,23 +118,23 @@ Control (MAC) address.  The other implementation is for Cisco's
 complete IP address.  It uses option codes 26946 and 20292,
 respectively, from the middle of the "Unassigned" range.</t>
 
-<t>This document codifies a more flexible format that can accomodate the
+<t>This document codifies a more flexible format that can accommodate the
 needs of both implementations, as well as other more opaque
 identifiers.  It is intended to supersede those non-standard options.</t>
 
-<t>This option is intended only for constrained environments where the
-use of the option can be carefully controlled.  It is completely
-optional and should be ignored by most DNS software.</t>
+<t>This option is intended only for constrained environments where its
+use can be carefully controlled.  It is completely optional and should
+be ignored by most DNS software.</t>
 
 </section>
 <section anchor="privacy-considerations" title="Privacy Considerations">
 
 <t>The IETF is actively working on enhancing DNS privacy
-<xref target="DPRIVE_Working_Group"/>, and the reinjection of personally
+<xref target="DPRIVE_Working_Group"/>, and the re-injection of personally
 identifiable information has been identified as a problematic design
 pattern <xref target="I-D.hardie-privsec-metadata-insertion"/>.</t>
 
-<t>Because this option trasmits information that is meant to identify
+<t>Because this option transmits information that is meant to identify
 specific clients, to be considered compliant with this draft
 implementations MUST NOT add the option without explicit opt-in by an
 administrator on the local area network.  For example, agreeing to the
@@ -187,9 +190,11 @@ as follows:</t>
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 2: |                        OPTION-LENGTH                      |
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-4: |                         ECID-DOMAIN                       /
+4: |                       ADDRESS-FAMILY                      |
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-N: |                      CLIENT-IDENTIFIER                    /
+6: |                                                           /
+   /                      CLIENT-IDENTIFIER                    /
+   /                                                           /
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 ]]></artwork></figure>
 
@@ -199,27 +204,38 @@ N: |                      CLIENT-IDENTIFIER                    /
   <t hangText='OPTION-LENGTH:'>
   2 octets per <xref target="RFC6891"/>.  Contains the length of the payload
 following OPTION-LENGTH, in octets.</t>
-  <t hangText='ECID-DOMAIN:'>
-  A variable length domain name that defines the context in which
-the identifier should be interpreted, encoded in uncompressed wire format.</t>
+  <t hangText='ADDRESS-FAMILY:'>
+  2 octets per <xref target="Address_Family_Numbers"/>, describing the format of
+CLIENT-IDENTIFIER as elaborated below.</t>
   <t hangText='CLIENT-IDENTIFIER:'>
-  A variable number of octets, depending on ECID-DOMAIN.  Its contents
-are opaque to this specification, only needing to be understood
-between a co-operating forwarder and full-service resolver.</t>
+  A variable number of octets, depending on ADDRESS-FAMILY.</t>
 </list></t>
-
-<t>The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
-repeated in a single ECID option, increasing OPTION-LENGTH
-correspondingly. However, the same ECID-DOMAIN may not appear more
-than once.</t>
-
-<t>[A domain name is used to identify the payload in order to provide
-protection against conflicts with other users of the option without
-the burden of Yet Another IANA Registry to manage Yet Another Two Byte
-Code. The downside is slightly longer message lengths. ]</t>
 
 <t>All fields are in network byte order ("big-endian", per <xref target="RFC1700"/>,
 Data Notation).</t>
+
+<t>This draft only specifies behaviour for the following ADDRESS-FAMILY
+values and the corresponding CLIENT-IDENTIFIER lengths:</t>
+
+<t><list style="symbols">
+  <t>1 (0x0001, IP version 4): 4 octets, fixed.</t>
+  <t>2 (0x0002, IP version 6): 16 octets, fixed.</t>
+  <t>5 (0x0005, Domain Name System): Variable-length domain name in
+uncompressed wire format followed by a variable-length custom token.</t>
+  <t>16389 (0x4005, 48-bit MAC): 6 octets, fixed.</t>
+</list></t>
+
+<t>The use of Domain Name System as an address family is to facilitate
+custom tokens that are not well-described by the concept of address,
+as described in <xref target="using-the-dns-address-family"/>.</t>
+
+<t>Other types of identifying addresses, such as a 64-bit MAC
+<xref target="RFC7042"/> or a DHCP Unique Identifier <xref target="RFC3315"/> and <xref target="RFC6355"/>
+could be accommodated as devices and needs change. [ Why not just
+bless those obvious candidates now? ]</t>
+
+<t>Multiple ECID options MAY appear in the OPT record.  However, the same
+ADDRESS-FAMILY SHOULD not appear more than once.</t>
 
 </section>
 <section anchor="protocol-description" title="Protocol Description">
@@ -233,7 +249,7 @@ by the local forwarding resolver.</t>
 
 <t>When a DNS forwarding resolver, provided as part of a router for
 example, receives a DNS query message from the originating client it
-adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but
+adds any ADDRESS-FAMILY / CLIENT-IDENTIFIER pairs that it supports but
 which are not present in the existing client request.  It then sends
 the request to the upstream full-service resolver.</t>
 
@@ -256,8 +272,8 @@ authoritative DNS servers.</t>
 whether filtering affected the response.  If the name resolution
 involved any names for which customization was possible, even if such
 filtering resulted in delivering the original data, the response
-SHOULD include an ECID option which contains the ECID-DOMAIN and
-CLIENT-IDENTIFIER that were considered for filtering.</t>
+SHOULD include an ECID option which contains the FAMILY-ADDRESS and
+CLIENT-IDENTIFIER pairs that were considered for filtering.</t>
 
 <t>For example, if a filter is set such that only names in the
 example.com domain are possibly restricted to some devices, then a
@@ -276,38 +292,64 @@ to just one second and the ECID option included as described above.</t>
 
 <t>If the request contains a malformed ECID option, such as
 CLIENT-IDENTIFIER not correctly matching the length of described by
-OPTION-LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS
+OPTION-LENGTH and ADDRESS-FAMILY, the resolver SHOULD reply with DNS
 rcode FORMERR.</t>
 
 <t>If the resolver by policy does not respond to requests that are
-lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS
-rcode REFUSED.</t>
+lacking ECID of the appropriate ADDRESS-FAMILY, it SHOULD reply with
+DNS rcode REFUSED.</t>
 
 </section>
 </section>
-<section anchor="example" title="Example">
+<section anchor="using-the-dns-address-family" title="Using the DNS Address Family">
 
-<t>The current use of option 26946 by Umbrella encodes 64 bits of device
-identification following the 7 octet string "OpenDNS".  To use the
-ECID option they would instead use an ECID-DOMAIN such as
-eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
-also add the IP address they currently send with option 20292 they
-would use something like ip4.umbrella.com or ip6.umbrella.com and the
-corresponding IPv4 or IPv6 address.</t>
+<t>When ADDRESS-FAMILY 15 is used, the uncompressed wire format of the
+domain name is followed by a token that is otherwise opaque to this
+specification.  The length of that token is defined by OPTION-LENGTH
+less the two octets used for ADDRESS-FAMILY and the length of the
+domain name.</t>
+
+<t>The name used SHOULD be in a namespace that is controlled by the
+service provider that is using the option, but need not be resolvable
+in the DNS.  We RECOMMEND that providers use short domain names to
+minimize DNS packet length.</t>
+
+<t>The domain name provides protection against conflicts with other users
+of the option without the burden of creating yet another IANA Registry
+to manage yet another two-octet code. Co-operating forwarder/resolver
+pairs are the only users of the data who need to be concerned with its
+format.</t>
+
+</section>
+<section anchor="implementation-status" title="Implementation Status">
+
+<t>[RFC Editor: per RFC 6982 this section should be removed prior to
+publication.]</t>
+
+<t>The protocol proposed here is not currently used anywhere exactly as
+described, though the Nominum and Umbrella implementations are
+substantially similar.</t>
+
+<t>The authors know of at least two providers who wish to have it
+properly standardized and would implement the standard in preference
+to either of the existing non-standard methods.</t>
 
 </section>
 <section anchor="nat-considerations" title="NAT Considerations">
 
-<t>Devices that perform Network Address Translation (NAT) need not give
+<t>Devices that perform Network Address Translation (NAT) SHOULD NOT give
 special consideration for ECID. NAT translates between a layer 3
 private IP address assigned to a client device on the Local Area
 Network and a layer 3 public IP address for use within the Wide Area
-Network.</t>
+Network.  If ECID is being used to pass an IPv4 or IPv6 address, it
+SHOULD use the internal address without NAT translation, because
+transforming it to the public address of the NAT device would coalesce
+all internal devices to just one address.</t>
 
-<t>ECID information identifies a client device by a different means,
-e.g. its layer 2 address. A device's identifier is NOT impacted by
-NAT.  Therefore, DNS queries may be passed without modification of any
-ECID information.</t>
+<t>Other ECID options identify a client device by a different means,
+e.g. its layer 2 address. This sort of device's identifier is not
+impacted by NAT.  Therefore, DNS queries may be passed without
+modification of any ECID information.</t>
 
 </section>
 <section anchor="security-considerations" title="Security Considerations">
@@ -339,9 +381,9 @@ registry for the Device ID option.</t>
 </section>
 <section anchor="acknowledgements" title="Acknowledgements">
 
-<t>The authors wish to thank the Barry Greene, Martin Deen and Benjamin
-Petrin for their feedback and review during the initial development of
-this document.</t>
+<t>The authors wish to thank the Barry Greene, Martin Deen, Benjamin
+Petrin, and Robert Fleischman for their feedback and review during the
+initial development of this document.</t>
 
 </section>
 
@@ -352,6 +394,15 @@ this document.</t>
 
     <references title='Normative References'>
 
+<reference anchor="Address_Family_Numbers" target="http://www.iana.org/assignments/address-family-numbers/">
+  <front>
+    <title>Address Family Numbers</title>
+    <author initials="." surname="IANA" fullname="IANA">
+      <organization></organization>
+    </author>
+    <date year="n.d."/>
+  </front>
+</reference>
 &RFC7871;
 &RFC6891;
 &RFC2119;
@@ -406,6 +457,9 @@ this document.</t>
   </front>
 </reference>
 &I-D.hardie-privsec-metadata-insertion;
+&RFC7042;
+&RFC3315;
+&RFC6355;
 
 
     </references>
@@ -415,121 +469,136 @@ this document.</t>
   </back>
 
 <!-- ##markdown-source:
-H4sIAFQov1gAA7Vaa3PbRrL9Pr9irvIhdi1JPez4obp179KSnKiuLHklOa6t
-9VZqCAzJiQAMgwFEc73+7/d09wwAUnJ2a2s3lYQUCAz6efp0z4zHY9W4prDH
-+qRwtmr0+al2lX7r67Wpc5vr08sb/afW1s4GlfusMiXuzWszb8aNKew4r4Jf
-jS0+DsYZL+Hy8cGByk2DG48ODl+OD46Ucqv6WDd1G5qjg4PXuGJqa471edXY
-urKNWi+O6VVX7/VHX9+5aqF/rH27Unfr/qbxKb1WZaY51qHJlcp8jjuPdRvG
-JmTOqZU7VlqPdeMz/gybsrbzIN993fAfyrTN0td8J/7T0Dcc6+uJvnDZsuEr
-ouW1n9m6GVz2NV52sjQ15NEnvizbykEa56vAvwe8wEK4w2evjg70TVvVLlj9
-sykKu9GnNd+TuWZzrH+CQrmv5IrP8bKfp2ysw3iprZoa9324mfIFWxpXHOua
-JZoUJNEfMxFkkvlSbetyOjmBNmZd2yqzA4VOzb3L9cn2T7Un79vcNb7utZze
-GbxS39psWfnCL8j9Wyr+cKDf1N7ka7MZ6HViylnt8oUdaPZuqg+ODp8fjQ8P
-fnj+u+pRQP3R8JtFK1fNfV3CwveW3HX6/vr857NfYoT8whFyzAv0LqV/xvEz
-6f3R1NBX/19bmtp1v7GpPk62L+8+eutK/dFluPdu58nbyfYPMY1Exp0o5t9N
-vSDLLZtmFY7395EgpqlNdgcXOtvMJ7D7/nqxn69qqLsfvbtPrkVylSb89piq
-IuWNKz30sxRoaiDjzWR4MUoYV3sgFGRar9eTZmnv+JlAEk3au/34wD7Sf7Js
-yoJE+tkg0f0vJyZb2htbi392hcPzpnJ/4ww51pe+dFVbjpDP2WQokKyl+7W+
-JVolK1Bs7K9qn7dZs5/hKRiacIht9QEBCPHNN+RBiLqQeX2zCY0tw0Nh0vOP
-+8xnYdLGO1iM3N7bwq/gKADUGk7HBZdZANLK7buc4HC+ifKN4e753GWAw/F4
-rM0skP8bpW6XLgim6tzOXWWDNgy8Z/Q/vyL7AdN0hjje4CfB2XFY2cxhPRXf
-44BKwG565jdB7JFeu2apF63LDfJdI5s0hZfJNvj0jc14aT9Xoc2Wuks3X01E
-xgr3/HKW/0KfkNN+biiw8D4dfmsB4XrGEdwE/eTTXz799amGIiYHlmAJU+gZ
-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
+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
++gf3OLYxVzgAAA==
 
 -->
 

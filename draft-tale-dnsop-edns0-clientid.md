@@ -37,6 +37,13 @@ author:
     country: USA
     email: tale@akamai.com
 
+normative:
+  Address_Family_Numbers:
+    author:
+        name: IANA
+    title: Address Family Numbers
+    target: http://www.iana.org/assignments/address-family-numbers/
+
 informative:
   DPRIVE_Working_Group:
     author:
@@ -79,7 +86,7 @@ such information.
 Text inside square brackets (\[\]) is additional background
 information, answers to frequently asked questions, general musings,
 etc.  They will be removed before publication.  This document is being
-collaborated on in Github at
+collaborated on in GitHub at
 \<https://github.com/vttale/edns0-clientid\>.  The most recent
 version of the document, open issues, etc should all be available
 here.  The authors gratefully accept pull requests.
@@ -115,22 +122,22 @@ Control (MAC) address.  The other implementation is for Cisco's
 complete IP address.  It uses option codes 26946 and 20292,
 respectively, from the middle of the "Unassigned" range.
 
-This document codifies a more flexible format that can accomodate the
+This document codifies a more flexible format that can accommodate the
 needs of both implementations, as well as other more opaque
 identifiers.  It is intended to supersede those non-standard options.
 
-This option is intended only for constrained environments where the
-use of the option can be carefully controlled.  It is completely
-optional and should be ignored by most DNS software.
+This option is intended only for constrained environments where its
+use can be carefully controlled.  It is completely optional and should
+be ignored by most DNS software.
 
 # Privacy Considerations
 
 The IETF is actively working on enhancing DNS privacy
-{{DPRIVE_Working_Group}}, and the reinjection of personally
+{{DPRIVE_Working_Group}}, and the re-injection of personally
 identifiable information has been identified as a problematic design
 pattern {{?I-D.hardie-privsec-metadata-insertion}}.
 
-Because this option trasmits information that is meant to identify
+Because this option transmits information that is meant to identify
 specific clients, to be considered compliant with this draft
 implementations MUST NOT add the option without explicit opt-in by an
 administrator on the local area network.  For example, agreeing to the
@@ -186,9 +193,11 @@ as follows:
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
     2: |                        OPTION-LENGTH                      |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-    4: |                         ECID-DOMAIN                       /
+    4: |                       ADDRESS-FAMILY                      |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-    N: |                      CLIENT-IDENTIFIER                    /
+    6: |                                                           /
+       /                      CLIENT-IDENTIFIER                    /
+       /                                                           /
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
 OPTION-CODE:
@@ -198,27 +207,36 @@ OPTION-LENGTH:
 : 2 octets per {{!RFC6891}}.  Contains the length of the payload
 following OPTION-LENGTH, in octets.
 
-ECID-DOMAIN:
-: A variable length domain name that defines the context in which
-the identifier should be interpreted, encoded in uncompressed wire format.
+ADDRESS-FAMILY:
+: 2 octets per {{Address_Family_Numbers}}, describing the format of
+CLIENT-IDENTIFIER as elaborated below.
 
 CLIENT-IDENTIFIER:
-: A variable number of octets, depending on ECID-DOMAIN.  Its contents
-are opaque to this specification, only needing to be understood
-between a co-operating forwarder and full-service resolver.
-
-The ECID-DOMAIN and its corresponding CLIENT-IDENTIFIER fields may be
-repeated in a single ECID option, increasing OPTION-LENGTH
-correspondingly. However, the same ECID-DOMAIN may not appear more
-than once.
-
-\[A domain name is used to identify the payload in order to provide
-protection against conflicts with other users of the option without
-the burden of Yet Another IANA Registry to manage Yet Another Two Byte
-Code. The downside is slightly longer message lengths. \]
+: A variable number of octets, depending on ADDRESS-FAMILY.
 
 All fields are in network byte order ("big-endian", per {{!RFC1700}},
 Data Notation).
+
+This draft only specifies behaviour for the following ADDRESS-FAMILY
+values and the corresponding CLIENT-IDENTIFIER lengths:
+
+* 1 (0x0001, IP version 4): 4 octets, fixed.
+* 2 (0x0002, IP version 6): 16 octets, fixed.
+* 5 (0x0005, Domain Name System): Variable-length domain name in
+uncompressed wire format followed by a variable-length custom token.
+* 16389 (0x4005, 48-bit MAC): 6 octets, fixed.
+
+The use of Domain Name System as an address family is to facilitate
+custom tokens that are not well-described by the concept of address,
+as described in {{using-the-dns-address-family}}.
+
+Other types of identifying addresses, such as a 64-bit MAC
+{{?RFC7042}} or a DHCP Unique Identifier {{?RFC3315}} and {{?RFC6355}}
+could be accommodated as devices and needs change. \[ Why not just
+bless those obvious candidates now? \]
+
+Multiple ECID options MAY appear in the OPT record.  However, the same
+ADDRESS-FAMILY SHOULD not appear more than once.
 
 # Protocol Description
 
@@ -231,7 +249,7 @@ by the local forwarding resolver.
 
 When a DNS forwarding resolver, provided as part of a router for
 example, receives a DNS query message from the originating client it
-adds any ECID-DOMAIN / CLIENT-IDENTIFIER pairs that it supports but
+adds any ADDRESS-FAMILY / CLIENT-IDENTIFIER pairs that it supports but
 which are not present in the existing client request.  It then sends
 the request to the upstream full-service resolver.
 
@@ -253,8 +271,8 @@ For possible caching purposes, the forwarding resolver needs to know
 whether filtering affected the response.  If the name resolution
 involved any names for which customization was possible, even if such
 filtering resulted in delivering the original data, the response
-SHOULD include an ECID option which contains the ECID-DOMAIN and
-CLIENT-IDENTIFIER that were considered for filtering.
+SHOULD include an ECID option which contains the FAMILY-ADDRESS and
+CLIENT-IDENTIFIER pairs that were considered for filtering.
 
 For example, if a filter is set such that only names in the
 example.com domain are possibly restricted to some devices, then a
@@ -273,35 +291,60 @@ to just one second and the ECID option included as described above.
 
 If the request contains a malformed ECID option, such as
 CLIENT-IDENTIFIER not correctly matching the length of described by
-OPTION-LENGTH and ECID-DOMAIN, the resolver SHOULD reply with DNS
+OPTION-LENGTH and ADDRESS-FAMILY, the resolver SHOULD reply with DNS
 rcode FORMERR.
 
 If the resolver by policy does not respond to requests that are
-lacking ECID of the appropriate ECID-DOMAIN, it SHOULD reply with DNS
-rcode REFUSED.
+lacking ECID of the appropriate ADDRESS-FAMILY, it SHOULD reply with
+DNS rcode REFUSED.
 
-# Example
+# Using the DNS Address Family
 
-The current use of option 26946 by Umbrella encodes 64 bits of device
-identification following the 7 octet string "OpenDNS".  To use the
-ECID option they would instead use an ECID-DOMAIN such as
-eui64.umbrella.com followed by the 64 bit identifier.  Similarly, to
-also add the IP address they currently send with option 20292 they
-would use something like ip4.umbrella.com or ip6.umbrella.com and the
-corresponding IPv4 or IPv6 address.
+When ADDRESS-FAMILY 15 is used, the uncompressed wire format of the
+domain name is followed by a token that is otherwise opaque to this
+specification.  The length of that token is defined by OPTION-LENGTH
+less the two octets used for ADDRESS-FAMILY and the length of the
+domain name.
+
+The name used SHOULD be in a namespace that is controlled by the
+service provider that is using the option, but need not be resolvable
+in the DNS.  We RECOMMEND that providers use short domain names to
+minimize DNS packet length.
+
+The domain name provides protection against conflicts with other users
+of the option without the burden of creating yet another IANA Registry
+to manage yet another two-octet code. Co-operating forwarder/resolver
+pairs are the only users of the data who need to be concerned with its
+format.
+
+# Implementation Status
+
+\[RFC Editor: per RFC 6982 this section should be removed prior to
+publication.\]
+
+The protocol proposed here is not currently used anywhere exactly as
+described, though the Nominum and Umbrella implementations are
+substantially similar.
+
+The authors know of at least two providers who wish to have it
+properly standardized and would implement the standard in preference
+to either of the existing non-standard methods.
 
 # NAT Considerations
 
-Devices that perform Network Address Translation (NAT) need not give
+Devices that perform Network Address Translation (NAT) SHOULD NOT give
 special consideration for ECID. NAT translates between a layer 3
 private IP address assigned to a client device on the Local Area
 Network and a layer 3 public IP address for use within the Wide Area
-Network.
+Network.  If ECID is being used to pass an IPv4 or IPv6 address, it
+SHOULD use the internal address without NAT translation, because
+transforming it to the public address of the NAT device would coalesce
+all internal devices to just one address.
 
-ECID information identifies a client device by a different means,
-e.g. its layer 2 address. A device's identifier is NOT impacted by
-NAT.  Therefore, DNS queries may be passed without modification of any
-ECID information.
+Other ECID options identify a client device by a different means,
+e.g. its layer 2 address. This sort of device's identifier is not
+impacted by NAT.  Therefore, DNS queries may be passed without
+modification of any ECID information.
 
 # Security Considerations
 
@@ -330,8 +373,8 @@ registry for the Device ID option.
 
 # Acknowledgements
 
-The authors wish to thank the Barry Greene, Martin Deen and Benjamin
-Petrin for their feedback and review during the initial development of
-this document.
+The authors wish to thank the Barry Greene, Martin Deen, Benjamin
+Petrin, and Robert Fleischman for their feedback and review during the
+initial development of this document.
 
 --- back
