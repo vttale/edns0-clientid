@@ -522,7 +522,7 @@
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 2: |                        OPTION-LENGTH                      |
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-4: |                       ADDRESS-FAMILY                      |
+4: |                       IDENTIFIER-TYPE                     |
    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 6: |                                                           /
    /                      CLIENT-IDENTIFIER                    /
@@ -536,38 +536,38 @@
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  For ECID the code is TBD by IANA.</dd>
   <dt>OPTION-LENGTH:</dt>
   <dd style="margin-left: 8">2 octets per <a href="#RFC6891">[RFC6891]</a>.  Contains the length of the payload following OPTION-LENGTH, in octets.</dd>
-  <dt>ADDRESS-FAMILY:</dt>
-  <dd style="margin-left: 8">2 octets per <a href="#Address_Family_Numbers">[Address_Family_Numbers]</a>, describing the format of CLIENT-IDENTIFIER as elaborated below.</dd>
+  <dt>IDENTIFIER-TYPE:</dt>
+  <dd style="margin-left: 8">2 octets per <a href="#Address_Family_Numbers">[Address_Family_Numbers]</a>, describing the format of CLIENT-IDENTIFIER as elaborated below. [ Is it better to call this ADDRESS-FAMILY? ]</dd>
   <dt>CLIENT-IDENTIFIER:</dt>
-  <dd style="margin-left: 8">A variable number of octets, depending on ADDRESS-FAMILY.</dd>
+  <dd style="margin-left: 8">A variable number of octets, depending on IDENTIFIER-TYPE.</dd>
 </dl>
 <p id="rfc.section.4.p.3">All fields are in network byte order ("big-endian", per <a href="#RFC1700">[RFC1700]</a>, Data Notation).</p>
-<p id="rfc.section.4.p.4">This draft only specifies behaviour for the following ADDRESS-FAMILY values and the corresponding CLIENT-IDENTIFIER lengths:</p>
+<p id="rfc.section.4.p.4">This draft only specifies behaviour for the following IDENTIFIER-TYPE values and the corresponding CLIENT-IDENTIFIER lengths:</p>
 <p/>
 
 <ul>
+  <li>16389 (0x4005, 48-bit MAC): 6 octets, fixed.</li>
   <li>1 (0x0001, IP version 4): 4 octets, fixed.</li>
   <li>2 (0x0002, IP version 6): 16 octets, fixed.</li>
-  <li>5 (0x0005, Domain Name System): Variable-length domain name in uncompressed wire format followed by a variable-length custom token.</li>
-  <li>16389 (0x4005, 48-bit MAC): 6 octets, fixed.</li>
+  <li>16 (0x0010, Domain Name System): Variable-length domain name in uncompressed wire format followed by a variable-length custom token.</li>
 </ul>
-<p id="rfc.section.4.p.6">The use of Domain Name System as an address family is to facilitate custom tokens that are not well-described by the concept of address, as described in <a href="#using-the-dns-address-family">Section 6</a>.</p>
+<p id="rfc.section.4.p.6">The use of Domain Name System as an address family is to facilitate custom tokens that are not well-conceptualized as addresses, as described in <a href="#using-the-dns-address-family">Section 6</a>.</p>
 <p id="rfc.section.4.p.7">Other types of identifying addresses, such as a 64-bit MAC <a href="#RFC7042">[RFC7042]</a> or a DHCP Unique Identifier <a href="#RFC3315">[RFC3315]</a> and <a href="#RFC6355">[RFC6355]</a> could be accommodated as devices and needs change. [ Why not just bless those obvious candidates now? ]</p>
-<p id="rfc.section.4.p.8">Multiple ECID options MAY appear in the OPT record.  However, the same ADDRESS-FAMILY SHOULD not appear more than once.</p>
+<p id="rfc.section.4.p.8">Multiple ECID options MAY appear in the OPT record.  However, the same IDENTIFIER-TYPE SHOULD not appear more than once.</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#protocol-description" id="protocol-description">Protocol Description</a></h1>
 <h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#dns-query" id="dns-query">DNS Query</a></h1>
 <p id="rfc.section.5.1.p.1">Any client that originates a DNS query message MAY include the ECID option in the DNS Query message.  It is normally expected that the client itself would not do this, but rather that it will be added by the local forwarding resolver.</p>
-<p id="rfc.section.5.1.p.2">When a DNS forwarding resolver, provided as part of a router for example, receives a DNS query message from the originating client it adds any ADDRESS-FAMILY / CLIENT-IDENTIFIER pairs that it supports but which are not present in the existing client request.  It then sends the request to the upstream full-service resolver.</p>
+<p id="rfc.section.5.1.p.2">When a DNS forwarding resolver, provided as part of a router for example, receives a DNS query message from the originating client it adds any IDENTIFIER-TYPE / CLIENT-IDENTIFIER pairs that it supports but which are not present in the existing client request.  It then sends the request to the upstream full-service resolver.</p>
 <p id="rfc.section.5.1.p.3">Because the option contains personally identifiable information, it should be protected by either only being used within Autonomous Systems <a href="#RFC1930">[RFC1930]</a> controlled by the same provider, by going over an opaque channel such as DNS over TLS <a href="#RFC7858">[RFC7858]</a>, or by being securely encoded and varying per request.  It MUST NOT be sent in clear-text across the Internet.</p>
 <h1 id="rfc.section.5.2"><a href="#rfc.section.5.2">5.2.</a> <a href="#dns-response" id="dns-response">DNS Response</a></h1>
 <p id="rfc.section.5.2.p.1">The logic used by a full-service resolver to customize a response based on ECID is out of scope for this document.  The resolver MUST NOT include the ECID option in any queries that it makes to external authoritative DNS servers.</p>
 <p id="rfc.section.5.2.p.2">For possible caching purposes, the forwarding resolver needs to know whether filtering affected the response.  If the name resolution involved any names for which customization was possible, even if such filtering resulted in delivering the original data, the response SHOULD include an ECID option which contains the FAMILY-ADDRESS and CLIENT-IDENTIFIER pairs that were considered for filtering.</p>
 <p id="rfc.section.5.2.p.3">For example, if a filter is set such that only names in the example.com domain are possibly restricted to some devices, then a request for foo.example.com would have the ECID in the response even when the request came from a device which was not restricted.  Requests for any other names would not include ECID in the response.</p>
 <p id="rfc.section.5.2.p.4">So that the caching forwarding resolver does not need to have any knowledge about what filters are in place, it is the full-service resolver's responsibility to adjust any TTLs in the response as might be dictated by the filter policy it has configured.  That is, if some name is filtered only between the hours of 09:00 and 17:00 and a request is received for that name at 16:59:59, the TTL on a positive response or the SOA ncache field on a negative response should be set to just one second and the ECID option included as described above.</p>
-<p id="rfc.section.5.2.p.5">If the request contains a malformed ECID option, such as CLIENT-IDENTIFIER not correctly matching the length of described by OPTION-LENGTH and ADDRESS-FAMILY, the resolver SHOULD reply with DNS rcode FORMERR.</p>
-<p id="rfc.section.5.2.p.6">If the resolver by policy does not respond to requests that are lacking ECID of the appropriate ADDRESS-FAMILY, it SHOULD reply with DNS rcode REFUSED.</p>
+<p id="rfc.section.5.2.p.5">If the request contains a malformed ECID option, such as CLIENT-IDENTIFIER not correctly matching the length of described by OPTION-LENGTH and IDENTIFIER-TYPE, the resolver SHOULD reply with DNS rcode FORMERR.</p>
+<p id="rfc.section.5.2.p.6">If the resolver by policy does not respond to requests that are lacking ECID of the appropriate IDENTIFIER-TYPE, it SHOULD reply with DNS rcode REFUSED.</p>
 <h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#using-the-dns-address-family" id="using-the-dns-address-family">Using the DNS Address Family</a></h1>
-<p id="rfc.section.6.p.1">When ADDRESS-FAMILY 15 is used, the uncompressed wire format of the domain name is followed by a token that is otherwise opaque to this specification.  The length of that token is defined by OPTION-LENGTH less the two octets used for ADDRESS-FAMILY and the length of the domain name.</p>
+<p id="rfc.section.6.p.1">When IDENTIFIER-TYPE 16 is used, the uncompressed wire format of the domain name is followed by a token that is otherwise opaque to this specification.  The length of that token is defined by OPTION-LENGTH less the two octets used for IDENTIFIER-TYPE and the length of the domain name.</p>
 <p id="rfc.section.6.p.2">The name used SHOULD be in a namespace that is controlled by the service provider that is using the option, but need not be resolvable in the DNS.  We RECOMMEND that providers use short domain names to minimize DNS packet length.</p>
 <p id="rfc.section.6.p.3">The domain name provides protection against conflicts with other users of the option without the burden of creating yet another IANA Registry to manage yet another two-octet code. Co-operating forwarder/resolver pairs are the only users of the data who need to be concerned with its format.</p>
 <h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#implementation-status" id="implementation-status">Implementation Status</a></h1>

@@ -77,10 +77,10 @@ README.md: $(draft).raw.txt
 	@echo '**Important:** Read CONTRIBUTING.md before submitting feedback or contributing' > README.md
 	@echo \`\`\` >> README.md
 	@cat $(draft).raw.txt >> README.md
+	@echo \`\`\` >> README.md
 
 commit: $(draft).txt $(draft).html README.md
 	@echo "Committing and pushing to github. Run 'make tag' to add and push a tag."
-	@echo \`\`\` >> README.md
 	read -p "Commit message: " msg; \
 	git commit -a -m "$$msg";
 	@git push

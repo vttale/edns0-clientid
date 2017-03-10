@@ -193,7 +193,7 @@ as follows:
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
     2: |                        OPTION-LENGTH                      |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-    4: |                       ADDRESS-FAMILY                      |
+    4: |                       IDENTIFIER-TYPE                     |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
     6: |                                                           /
        /                      CLIENT-IDENTIFIER                    /
@@ -207,28 +207,29 @@ OPTION-LENGTH:
 : 2 octets per {{!RFC6891}}.  Contains the length of the payload
 following OPTION-LENGTH, in octets.
 
-ADDRESS-FAMILY:
+IDENTIFIER-TYPE:
 : 2 octets per {{Address_Family_Numbers}}, describing the format of
-CLIENT-IDENTIFIER as elaborated below.
+CLIENT-IDENTIFIER as elaborated below. \[ Is it better to call this
+ADDRESS-FAMILY? \]
 
 CLIENT-IDENTIFIER:
-: A variable number of octets, depending on ADDRESS-FAMILY.
+: A variable number of octets, depending on IDENTIFIER-TYPE.
 
 All fields are in network byte order ("big-endian", per {{!RFC1700}},
 Data Notation).
 
-This draft only specifies behaviour for the following ADDRESS-FAMILY
+This draft only specifies behaviour for the following IDENTIFIER-TYPE
 values and the corresponding CLIENT-IDENTIFIER lengths:
 
+* 16389 (0x4005, 48-bit MAC): 6 octets, fixed.
 * 1 (0x0001, IP version 4): 4 octets, fixed.
 * 2 (0x0002, IP version 6): 16 octets, fixed.
-* 5 (0x0005, Domain Name System): Variable-length domain name in
+* 16 (0x0010, Domain Name System): Variable-length domain name in
 uncompressed wire format followed by a variable-length custom token.
-* 16389 (0x4005, 48-bit MAC): 6 octets, fixed.
 
 The use of Domain Name System as an address family is to facilitate
-custom tokens that are not well-described by the concept of address,
-as described in {{using-the-dns-address-family}}.
+custom tokens that are not well-conceptualized as addresses, as
+described in {{using-the-dns-address-family}}.
 
 Other types of identifying addresses, such as a 64-bit MAC
 {{?RFC7042}} or a DHCP Unique Identifier {{?RFC3315}} and {{?RFC6355}}
@@ -236,7 +237,7 @@ could be accommodated as devices and needs change. \[ Why not just
 bless those obvious candidates now? \]
 
 Multiple ECID options MAY appear in the OPT record.  However, the same
-ADDRESS-FAMILY SHOULD not appear more than once.
+IDENTIFIER-TYPE SHOULD not appear more than once.
 
 # Protocol Description
 
@@ -249,7 +250,7 @@ by the local forwarding resolver.
 
 When a DNS forwarding resolver, provided as part of a router for
 example, receives a DNS query message from the originating client it
-adds any ADDRESS-FAMILY / CLIENT-IDENTIFIER pairs that it supports but
+adds any IDENTIFIER-TYPE / CLIENT-IDENTIFIER pairs that it supports but
 which are not present in the existing client request.  It then sends
 the request to the upstream full-service resolver.
 
@@ -291,19 +292,19 @@ to just one second and the ECID option included as described above.
 
 If the request contains a malformed ECID option, such as
 CLIENT-IDENTIFIER not correctly matching the length of described by
-OPTION-LENGTH and ADDRESS-FAMILY, the resolver SHOULD reply with DNS
+OPTION-LENGTH and IDENTIFIER-TYPE, the resolver SHOULD reply with DNS
 rcode FORMERR.
 
 If the resolver by policy does not respond to requests that are
-lacking ECID of the appropriate ADDRESS-FAMILY, it SHOULD reply with
+lacking ECID of the appropriate IDENTIFIER-TYPE, it SHOULD reply with
 DNS rcode REFUSED.
 
 # Using the DNS Address Family
 
-When ADDRESS-FAMILY 15 is used, the uncompressed wire format of the
+When IDENTIFIER-TYPE 16 is used, the uncompressed wire format of the
 domain name is followed by a token that is otherwise opaque to this
 specification.  The length of that token is defined by OPTION-LENGTH
-less the two octets used for ADDRESS-FAMILY and the length of the
+less the two octets used for IDENTIFIER-TYPE and the length of the
 domain name.
 
 The name used SHOULD be in a namespace that is controlled by the
