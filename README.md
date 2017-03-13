@@ -212,17 +212,23 @@ Table of Contents
       uncompressed wire format followed by a variable-length custom
       token.
 
+   For DNS servers that implement ECID, it is RECOMMENDED that they
+   recognize at least the 48-bit MAC CLIENT-IDENTIFIER.
+
    The use of Domain Name System as an address family is to facilitate
    custom tokens that are not well-conceptualized as addresses, as
    described in Section 6.
 
    Other types of identifying addresses, such as a 64-bit MAC [RFC7042]
    or a DHCP Unique Identifier [RFC3315] and [RFC6355] could be
-   accommodated as devices and needs change. [ Why not just bless those
+   accommodated as devices and needs change, without needing to define
+   new EDNS option codes to cover them. [ Why not just bless those
    obvious candidates now? ]
 
    Multiple ECID options MAY appear in the OPT record.  However, the
-   same IDENTIFIER-TYPE SHOULD not appear more than once.
+   same IDENTIFIER-TYPE SHOULD not appear more than once, and each ECID
+   option MUST only carry one IDENTIFIER-TYPE and CLIENT-IDENTIFIER
+   pair.
 
 5.  Protocol Description
 

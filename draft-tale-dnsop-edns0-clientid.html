@@ -551,9 +551,10 @@
   <li>2 (0x0002, IP version 6): 16 octets, fixed.</li>
   <li>16 (0x0010, Domain Name System): Variable-length domain name in uncompressed wire format followed by a variable-length custom token.</li>
 </ul>
-<p id="rfc.section.4.p.6">The use of Domain Name System as an address family is to facilitate custom tokens that are not well-conceptualized as addresses, as described in <a href="#using-the-dns-address-family">Section 6</a>.</p>
-<p id="rfc.section.4.p.7">Other types of identifying addresses, such as a 64-bit MAC <a href="#RFC7042">[RFC7042]</a> or a DHCP Unique Identifier <a href="#RFC3315">[RFC3315]</a> and <a href="#RFC6355">[RFC6355]</a> could be accommodated as devices and needs change. [ Why not just bless those obvious candidates now? ]</p>
-<p id="rfc.section.4.p.8">Multiple ECID options MAY appear in the OPT record.  However, the same IDENTIFIER-TYPE SHOULD not appear more than once.</p>
+<p id="rfc.section.4.p.6">For DNS servers that implement ECID, it is RECOMMENDED that they recognize at least the 48-bit MAC CLIENT-IDENTIFIER.</p>
+<p id="rfc.section.4.p.7">The use of Domain Name System as an address family is to facilitate custom tokens that are not well-conceptualized as addresses, as described in <a href="#using-the-dns-address-family">Section 6</a>.</p>
+<p id="rfc.section.4.p.8">Other types of identifying addresses, such as a 64-bit MAC <a href="#RFC7042">[RFC7042]</a> or a DHCP Unique Identifier <a href="#RFC3315">[RFC3315]</a> and <a href="#RFC6355">[RFC6355]</a> could be accommodated as devices and needs change, without needing to define new EDNS option codes to cover them. [ Why not just bless those obvious candidates now? ]</p>
+<p id="rfc.section.4.p.9">Multiple ECID options MAY appear in the OPT record.  However, the same IDENTIFIER-TYPE SHOULD not appear more than once, and each ECID option MUST only carry one IDENTIFIER-TYPE and CLIENT-IDENTIFIER pair.</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#protocol-description" id="protocol-description">Protocol Description</a></h1>
 <h1 id="rfc.section.5.1"><a href="#rfc.section.5.1">5.1.</a> <a href="#dns-query" id="dns-query">DNS Query</a></h1>
 <p id="rfc.section.5.1.p.1">Any client that originates a DNS query message MAY include the ECID option in the DNS Query message.  It is normally expected that the client itself would not do this, but rather that it will be added by the local forwarding resolver.</p>

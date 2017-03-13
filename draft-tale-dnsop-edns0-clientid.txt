@@ -239,17 +239,23 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
       uncompressed wire format followed by a variable-length custom
       token.
 
+   For DNS servers that implement ECID, it is RECOMMENDED that they
+   recognize at least the 48-bit MAC CLIENT-IDENTIFIER.
+
    The use of Domain Name System as an address family is to facilitate
    custom tokens that are not well-conceptualized as addresses, as
    described in Section 6.
 
    Other types of identifying addresses, such as a 64-bit MAC [RFC7042]
    or a DHCP Unique Identifier [RFC3315] and [RFC6355] could be
-   accommodated as devices and needs change. [ Why not just bless those
+   accommodated as devices and needs change, without needing to define
+   new EDNS option codes to cover them. [ Why not just bless those
    obvious candidates now? ]
 
    Multiple ECID options MAY appear in the OPT record.  However, the
-   same IDENTIFIER-TYPE SHOULD not appear more than once.
+   same IDENTIFIER-TYPE SHOULD not appear more than once, and each ECID
+   option MUST only carry one IDENTIFIER-TYPE and CLIENT-IDENTIFIER
+   pair.
 
 5.  Protocol Description
 
@@ -268,12 +274,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
    Because the option contains personally identifiable information, it
    should be protected by either only being used within Autonomous
-   Systems [RFC1930] controlled by the same provider, by going over an
-   opaque channel such as DNS over TLS [RFC7858], or by being securely
-   encoded and varying per request.  It MUST NOT be sent in clear-text
-   across the Internet.
-
-
 
 
 
@@ -281,6 +281,11 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 5]
 
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
+
+   Systems [RFC1930] controlled by the same provider, by going over an
+   opaque channel such as DNS over TLS [RFC7858], or by being securely
+   encoded and varying per request.  It MUST NOT be sent in clear-text
+   across the Internet.
 
 5.2.  DNS Response
 
@@ -325,11 +330,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
    When IDENTIFIER-TYPE 16 is used, the uncompressed wire format of the
    domain name is followed by a token that is otherwise opaque to this
    specification.  The length of that token is defined by OPTION-LENGTH
-   less the two octets used for IDENTIFIER-TYPE and the length of the
-   domain name.
-
-   The name used SHOULD be in a namespace that is controlled by the
-   service provider that is using the option, but need not be resolvable
 
 
 
@@ -338,6 +338,11 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 6]
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
+   less the two octets used for IDENTIFIER-TYPE and the length of the
+   domain name.
+
+   The name used SHOULD be in a namespace that is controlled by the
+   service provider that is using the option, but need not be resolvable
    in the DNS.  We RECOMMEND that providers use short domain names to
    minimize DNS packet length.
 
@@ -380,11 +385,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
    The identifier of the client that initiated the request will be
    visible to all servers that are passed the ECID option, and the
-   various devices on the path between the local network and the full-
-   service resolver being used by the forwarding resolver.
-
-   DNS filtering products are easy circumvented and should not be
-   considered real security measures.  With commonly available tools it
 
 
 
@@ -394,6 +394,11 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 7]
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
+   various devices on the path between the local network and the full-
+   service resolver being used by the forwarding resolver.
+
+   DNS filtering products are easy circumvented and should not be
+   considered real security measures.  With commonly available tools it
    is trivial to discover the non-filtered DNS responses and use them in
    place of the filtered responses.
 
@@ -438,17 +443,16 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
               DOI 10.17487/RFC2119, March 1997,
               <http://www.rfc-editor.org/info/rfc2119>.
 
-   [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
-              NCACHE)", RFC 2308, DOI 10.17487/RFC2308, March 1998,
-              <http://www.rfc-editor.org/info/rfc2308>.
-
-
 
 
 Licht & Lawrence         Expires August 5, 2017                 [Page 8]
 
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
+
+   [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
+              NCACHE)", RFC 2308, DOI 10.17487/RFC2308, March 1998,
+              <http://www.rfc-editor.org/info/rfc2308>.
 
    [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
               for DNS (EDNS(0))", STD 75, RFC 6891,
@@ -493,10 +497,6 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
               DOI 10.17487/RFC6355, August 2011,
               <http://www.rfc-editor.org/info/rfc6355>.
 
-   [RFC7042]  Eastlake 3rd, D. and J. Abley, "IANA Considerations and
-              IETF Protocol and Documentation Usage for IEEE 802
-              Parameters", BCP 141, RFC 7042, DOI 10.17487/RFC7042,
-              October 2013, <http://www.rfc-editor.org/info/rfc7042>.
 
 
 
@@ -505,6 +505,11 @@ Licht & Lawrence         Expires August 5, 2017                 [Page 9]
 
 Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
+
+   [RFC7042]  Eastlake 3rd, D. and J. Abley, "IANA Considerations and
+              IETF Protocol and Documentation Usage for IEEE 802
+              Parameters", BCP 141, RFC 7042, DOI 10.17487/RFC7042,
+              October 2013, <http://www.rfc-editor.org/info/rfc7042>.
 
    [Umbrella]
               Cisco Systems, Inc., "Umbrella", n.d.,
@@ -533,11 +538,6 @@ Authors' Addresses
    USA
 
    Email: tale@akamai.com
-
-
-
-
-
 
 
 
