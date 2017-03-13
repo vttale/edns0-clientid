@@ -7,12 +7,12 @@
 DNSOP Working Group                                             R. Licht
 Internet-Draft                                    Charter Communications
 Intended status: Standards Track                        D. Lawrence, Ed.
-Expires: August 5, 2017                              Akamai Technologies
-                                                           February 2017
+Expires: September 14, 2017                          Akamai Technologies
+                                                          March 13, 2017
 
 
                    Client ID in Forwarded DNS Queries
-                   draft-tale-dnsop-edns0-clientid-00
+                   draft-tale-dnsop-edns0-clientid-01
 
 Abstract
 
@@ -45,7 +45,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 5, 2017.
+   This Internet-Draft will expire on September 14, 2017.
 
 Copyright Notice
 

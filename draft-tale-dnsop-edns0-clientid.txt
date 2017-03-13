@@ -5,12 +5,12 @@
 DNSOP Working Group                                             R. Licht
 Internet-Draft                                    Charter Communications
 Intended status: Standards Track                        D. Lawrence, Ed.
-Expires: August 5, 2017                              Akamai Technologies
-                                                           February 2017
+Expires: September 14, 2017                          Akamai Technologies
+                                                          March 13, 2017
 
 
                    Client ID in Forwarded DNS Queries
-                   draft-tale-dnsop-edns0-clientid-00
+                   draft-tale-dnsop-edns0-clientid-01
 
 Abstract
 
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 5, 2017.
+   This Internet-Draft will expire on September 14, 2017.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 1]
+Licht & Lawrence       Expires September 14, 2017               [Page 1]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 2]
+Licht & Lawrence       Expires September 14, 2017               [Page 2]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    A similar EDNS option is already being used on the public Internet in
@@ -165,9 +165,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 3]
+Licht & Lawrence       Expires September 14, 2017               [Page 3]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    ECID  EDNS Client Identification.
@@ -221,9 +221,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 4]
+Licht & Lawrence       Expires September 14, 2017               [Page 4]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    This draft only specifies behaviour for the following IDENTIFIER-TYPE
@@ -277,9 +277,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 5]
+Licht & Lawrence       Expires September 14, 2017               [Page 5]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    Systems [RFC1930] controlled by the same provider, by going over an
@@ -333,9 +333,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 6]
+Licht & Lawrence       Expires September 14, 2017               [Page 6]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    less the two octets used for IDENTIFIER-TYPE and the length of the
@@ -389,9 +389,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 7]
+Licht & Lawrence       Expires September 14, 2017               [Page 7]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    various devices on the path between the local network and the full-
@@ -445,9 +445,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 8]
+Licht & Lawrence       Expires September 14, 2017               [Page 8]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
@@ -501,9 +501,9 @@ Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
 
 
 
-Licht & Lawrence         Expires August 5, 2017                 [Page 9]
+Licht & Lawrence       Expires September 14, 2017               [Page 9]
 
-Internet-Draft     Client ID in Forwarded DNS Queries      February 2017
+Internet-Draft     Client ID in Forwarded DNS Queries         March 2017
 
 
    [RFC7042]  Eastlake 3rd, D. and J. Abley, "IANA Considerations and
@@ -557,4 +557,4 @@ Authors' Addresses
 
 
 
-Licht & Lawrence         Expires August 5, 2017                [Page 10]
+Licht & Lawrence       Expires September 14, 2017              [Page 10]

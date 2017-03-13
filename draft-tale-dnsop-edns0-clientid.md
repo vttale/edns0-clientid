@@ -1,7 +1,7 @@
 ---
 title: Client ID in Forwarded DNS Queries
-docname: draft-tale-dnsop-edns0-clientid-00
-date: 2017-02
+docname: draft-tale-dnsop-edns0-clientid-01
+date: 2017
 
 ipr: trust200902
 area: Internet
